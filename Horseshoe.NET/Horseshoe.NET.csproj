@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>5.0.0</Version>
+    <Company>Carl Thomas</Company>
+    <Description>A suite of .NET utilities with a dual purpose: simplify coding tasks and offer a variety of unique capabilities for developers.</Description>
+    <Copyright>Copyright © 2026 Carl Thomas</Copyright>
+	<LangVersion>8.0</LangVersion>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>C:\Users\Carl\Dev\Horseshoe.NET\assets\horseshoe-net.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.6.3" />
+  </ItemGroup>
+
+</Project>
