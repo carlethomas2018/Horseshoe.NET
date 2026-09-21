@@ -19,6 +19,9 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <inheritdoc cref="TokenBase.Priority"/>
         public override int Priority => ParserPriority_String;
 
+        /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
+        public override string PatternIdentifier => "TX";
+
         private char QuoteChar { get; set; }
 
         /// <summary>
@@ -74,6 +77,7 @@ namespace Horseshoe.NET.Expressions.Tokens
                         return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: true);
                     }
                 }
+                throw new ExpressionException(Lang.Get("Token.Parse.Unterminated.String"));
             }
 
             rawValue = string.Empty;

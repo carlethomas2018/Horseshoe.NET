@@ -25,7 +25,7 @@ namespace Horseshoe.NET.CodeTrace
 
         public static bool HasMatchingTraceGroup(string traceGroup)
         {
-            return HasMatchingTraceGroup(grp => grp.Equals(traceGroup) || grp.StartsWith(traceGroup + "."));
+            return HasMatchingTraceGroup(grp => grp.Equals("*") || grp.Equals(traceGroup) || grp.StartsWith(traceGroup + "."));
         }
 
         public static bool HasMatchingTraceGroup(Func<string, bool> predicate)

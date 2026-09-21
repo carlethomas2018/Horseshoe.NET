@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+
+using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
-    public class Word : TokenBase, ITokenParser
+    public class Word : TokenBase
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Word;
 
         /// <inheritdoc cref="ITokenParser.Priority"/>
-        public int Priority => TokenBase.ParserPriority_Word;
+        public override int Priority => ParserPriority_Word;
+
+        /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
+        public override string PatternIdentifier => "VK";
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
@@ -26,95 +30,65 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
         }
 
-        public bool Parse
+        /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
+        public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
+            new Number(rawValue, tokenPos);
+
+        /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
+        public override bool Parse
         (
-            StringBuilder sb,
-            char c,
-            ref int startPos,
-            int curPos,
-            ReadOnlySpan<char> next32,
-            List<TokenBase> tokens,
-            ref bool readingString,
-            ref bool readingDate,
-            ref bool readingNumber,
-            ref bool readingWord,
-            ref bool readingCompoundOperator,
-            ref bool customFlag1,
-            ref bool customFlag2
+            ReadOnlySpan<char> rawSource,
+            ref int pos,
+            IEnumerable<TokenBase> tokens,
+            out string rawValue,
+            out int startPos
         )
         {
-            if (readingWord)
+            RelayMethodEntered(paramsAndArgs: new Dictionary<string, object>
             {
-                // a little housekeeping
-                readingString = false;
-                readingDate = false;
-                readingNumber = false;
-                readingCompoundOperator = false;
+                [nameof(rawSource)] = rawSource.ToString(),
+                [nameof(pos)] = pos,
+                [nameof(tokens)] = CollectionUtil.ToCountAndLastString(tokens)
+            });
 
-                if (IsWordChar(c))
-                {
-                    sb.Append(c);
-                    return true;
-                }
-                else
-                {
-                    tokens.Add(new Word(sb.ToString(), startPos));
-                    sb.Clear();
-                    readingWord = false;
-                    return false;
-                }
-            }
+            startPos = pos;
+            char c = rawSource[pos];
+            (char? next1, char? next2) = Next2(rawSource, pos);
 
-            // pass the buck to the string, date or number parser, if applicable
-            if (readingString || readingDate || (readingNumber && char.IsDigit(c)))
+            if
+            (
+                IsLetter(c) ||
+                (c == '_' && (IsLetter(next1) || IsDigit(next1))) ||
+                (c == '_' && next1 == '_' && (IsLetter(next2) || IsDigit(next2)))
+            )
             {
-                return false;
-            }
+                sb.Clear();
+                sb.Append(c);
+                pos++;
 
-            if (IsWordChar(c, isStartingChar: true))
-            {
-                if (sb.Length > 0)
+                for (; pos < rawSource.Length; pos++)
                 {
-                    if (readingNumber)
-                        throw new ExpressionException(Lang.Get("Token.Word.StartingChar"));
-                    if (readingCompoundOperator)
+                    c = rawSource[pos];
+
+                    if (IsLetter(c) || IsDigit(c) || c == '_')
                     {
-                        tokens.Add(new Operator(sb.ToString(), startPos));
+                        sb.Append(c);
+                        continue;
                     }
                 }
 
-                sb.Clear();
-                sb.Append(c);
-                readingWord = true;
-                startPos = curPos;
-
-                // a little housekeeping
-                readingString = false;
-                readingDate = false;
-                readingNumber = false;
-                readingCompoundOperator = false;
-            }
-            else
-            {
-
+                rawValue = sb.ToString();
+                return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: true);
             }
 
-            // pass the buck to the next parser
-            return false;
+            rawValue = string.Empty;
+            return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: false);
         }
 
-        public static bool IsWordChar(char c, bool isStartingChar = false)
-        {
-            if (c == '_')
-                return true;
+        public static bool IsDigit(char? c) =>
+            c.HasValue && c.Value.Between('0', '9');
 
-            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
-                return true;
-
-            if (!isStartingChar && char.IsDigit(c))
-                return true;
-
-            return false;
-        }
+        public static bool IsLetter(char? c) =>
+            c.HasValue && ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
     }
 }

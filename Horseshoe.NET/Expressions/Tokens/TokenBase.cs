@@ -16,11 +16,11 @@ namespace Horseshoe.NET.Expressions.Tokens
         public const int ParserPriority_Whitespace = 10;
         public const int ParserPriority_String = 20;
         public const int ParserPriority_Date = 30;
-        public const int ParserPriority_Number = 100;  // e.g. 19.1, π
+        public const int ParserPriority_Number = 100;  // e.g. 19.1
         public const int ParserPriority_MathematicalConstant = 110;  // e.g. π
-        public const int ParserPriority_FractionalNumber = 120;  // e.g. ½
-        //public const int ParserPriority_NumberPrefix = 130;  // i.e. -, √
-        public const int ParserPriority_Word = 140;  // e.g. keyword, function
+        public const int ParserPriority_Fraction = 120;  // e.g. ½
+        public const int ParserPriority_NumericalSuperscript = 130;  // e.g. 2³
+        public const int ParserPriority_Word = 140;  // e.g. keyword, function, context-based property
         public const int ParserPriority_Scope = 150;  // i.e. '(', ',', ')'
         public const int ParserPriority_Operator = 160;  // e.g. =, +, %, √
 
@@ -43,23 +43,34 @@ namespace Horseshoe.NET.Expressions.Tokens
         public virtual int Priority { get; }
 
         /// <summary>
-        /// A 2 char-length code unique to each token type in order to string tokens together into phrases.
+        /// A 2 char-length code unique to each token type in order to daisy chain tokens together into phrases.
         /// </summary>
         /// <remarks>
-        /// For example, the following combination of tokens "³√27" produces phrase pattern "SPORNL" that can be easily recognized and interpreted by the system.
+        /// <para>
+        /// Each unique code is comprised of a <c>char</c> identifying the return type and a second <c>char</c> reminiscent of the token type.
+        /// Client code can individually override this property and add their own unique codes.
+        /// </para>
+        /// The list of built-in identifiers includes...
         /// <list type="bullet">
-        /// <item>SP: '³' (superscript)</item>
-        /// <item>OR: '√' (operator right-facing)</item>
-        /// <item>NL: '27' (numeric literal)</item>
+        /// <item>TX: text string e.g. "Hello"</item>
+        /// <item>DT: date/time e.g. #1/2/2003#</item>
+        /// <item>NB: number e.g. -.27</item>
+        /// <item>NC: mathematical constant e.g. π</item>
+        /// <item>NF: fraction e.g. ⅔ (-&gt; "2/3")</item>
+        /// <item>NS: numeric superscript e.g. ³ (-&gt; "2³" or "2^3")</item>
+        /// <item>SB: scope begin e.g. '('</item>
+        /// <item>SE: scope end e.g. ')'</item>
+        /// <item>SS: scope separator e.g. ','</item>
+        /// <item>OA: operator all-facing e.g. =, +</item>
+        /// <item>OR: operator right-facing e.g. √ (-&gt; "-√9" or "³√27")</item>
+        /// <item>OV: operator varying-facing e.g. - (-&gt; "9-6" or "-√9")</item>
+        /// <item>VK: varying return type keyword e.g. HighDate</item>
+        /// <item>VP: varying return type context-based property e.g. MyProperty (-&gt; <c>new { MyProperty = "Hello" }</c>)</item>
+        /// <item>VF: varying return type function e.g. Not (-&gt; "Not(IsWeekday(Today))")</item>
         /// </list>
-        /// Other built-in identifiers include.
-        /// <list type="bullet">
-        /// <item>SB: '(' (scope begin)</item>
-        /// <item>SE: ')' (scope end)</item>
-        /// <item>SS: ',' (scope separator)</item>
-        /// <item>OA: '=', '+' (operator all-facing)</item>
-        /// <item>KW: 'HighDate' (keyword)</item>
-        /// </list>
+        /// <para>
+        /// For example, the combination of tokens "³√27" produces phrase pattern "NSORNB" that can be easily recognized by the system and linked to an in-code calculation.
+        /// </para>
         /// </remarks>
         public abstract string PatternIdentifier { get; }
 
@@ -198,6 +209,8 @@ namespace Horseshoe.NET.Expressions.Tokens
             { "Token.Word.StartingChar", "A word token may only start with '_' or a letter." },
             { "Token.Parse.Unexpected.{char}.{type}", "Unexpected char '{0}' encountered parsing '{1}' token." },
             { "Token.Parse.Unexpected.{value}.{type}", "Unexpected value '{0}' encountered parsing '{1}' token." },
+            { "Token.Parse.Unterminated.String", "Unterminated string." },
+            { "Token.Parse.Unterminated.Date", "Unterminated date." },
         }
         .AddLanguages
         (
@@ -206,6 +219,8 @@ namespace Horseshoe.NET.Expressions.Tokens
                 { "Token.Word.StartingChar", "Un token de 'Word' solo puede comenzar con '_' o una letra." },
                 { "Token.Parse.Unexpected.{char}.{type}", "Carácter inesperado '{0}' encontrado al analizar el token '{1}'." },
                 { "Token.Parse.Unexpected.{value}.{type}", "Valor inesperado '{0}' encontrado al analizar el token '{1}'." },
+                { "Token.Parse.Unterminated.String", "Texto sin terminar." },
+                { "Token.Parse.Unterminated.Date", "Fecha sin terminar." },
             }
         );
     }

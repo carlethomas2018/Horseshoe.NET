@@ -8,7 +8,7 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// <summary>
     /// Represents one of a specific subset of unicode symbols for fractional numbers.
     /// </summary>
-    public class Fraction : Number
+    public class Fraction : NumericBase
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Number;
@@ -16,7 +16,10 @@ namespace Horseshoe.NET.Expressions.Tokens
         public override NumberType NumberType { get; } = NumberType.FractionalLiteral;
 
         /// <inheritdoc cref="TokenBase.Priority"/>
-        public override int Priority => ParserPriority_FractionalNumber;
+        public override int Priority => ParserPriority_Fraction;
+
+        /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
+        public override string PatternIdentifier => "NF";
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
@@ -73,42 +76,42 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
             switch (c)
             { 
-                case '⅛':
-                case '¼':
-                case '⅓':
-                case '½':
-                case '⅝':
-                case '⅔':
-                case '¾':
-                case '⅞':
+                case '⅛':  // 1/8
+                case '¼':  // 1/4
+                case '⅓':  // 1/3
+                case '½':  // 1/2
+                case '⅝':  // 5/8
+                case '⅔':  // 2/3
+                case '¾':  // 3/4
+                case '⅞':  // 7/8
                     return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Number.GetValue(string)"/>
-        public new static double GetValue(string rawValue) 
+        /// <inheritdoc cref="NumericBase.GetValue(string)"/>
+        public override double GetValue() 
         {
-            switch (rawValue)
+            switch (RawValue)
             {
-                case "⅛":
+                case "⅛":  // 1/8
                     return 0.125;
-                case "¼":
+                case "¼":  // 1/4
                     return 0.25;
-                case "⅓":
+                case "⅓":  // 1/3
                     return 1.0 / 3.0;
-                case "½":
+                case "½":  // 1/2
                     return 0.5;
-                case "⅝":
+                case "⅝":  // 5/8
                     return 0.625;
-                case "⅔":
+                case "⅔":  // 2/3
                     return 2.0 / 3.0;
-                case "¾":
+                case "¾":  // 3/4
                     return 0.75;
-                case "⅞":
+                case "⅞":  // 7/8
                     return 0.875;
             }
-            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), rawValue.ToDisplayString(), typeof(Fraction).Name));
+            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(Fraction).Name));
         }
     }
 }

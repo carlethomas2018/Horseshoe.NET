@@ -6,25 +6,25 @@ using Horseshoe.NET.Collections;
 namespace Horseshoe.NET.Expressions.Tokens
 {
     /// <summary>
-    /// Represents a mathematical constant, i.e. <c>π</c> (pi).  PatternIdentifier = "NC".
+    /// Represents one of a specific subset of unicode symbols for fractional numbers.
     /// </summary>
-    public class MathematicalConstant : NumericBase
+    public class NumericSuperscript : NumericBase
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Number;
 
-        public override NumberType NumberType { get; } = NumberType.MathematicalConstant;
+        public override NumberType NumberType { get; } = NumberType.Superscript;
 
         /// <inheritdoc cref="TokenBase.Priority"/>
-        public override int Priority => ParserPriority_MathematicalConstant;
+        public override int Priority => ParserPriority_NumericalSuperscript;
 
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
-        public override string PatternIdentifier => "NC";
+        public override string PatternIdentifier => "NS";
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
         /// </summary>
-        internal MathematicalConstant() : base() 
+        internal NumericSuperscript() : base() 
         { 
         }
 
@@ -33,13 +33,13 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// </summary>
         /// <param name="rawValue">The parsed raw token</param>
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
-        public MathematicalConstant(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
+        public NumericSuperscript(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
         {
         }
 
         /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
         public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
-            new MathematicalConstant(rawValue, tokenPos);
+            new NumericSuperscript(rawValue, tokenPos);
 
         /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
         public override bool Parse
@@ -61,7 +61,7 @@ namespace Horseshoe.NET.Expressions.Tokens
             startPos = pos;
             char c = rawSource[pos];
 
-            if (IsMathematicalConstant(c))
+            if (IsSuperscript(c))
             {
                 pos++;
                 rawValue = new string(c, 1);
@@ -72,13 +72,20 @@ namespace Horseshoe.NET.Expressions.Tokens
             return RelayMethodReturningValue(returnValue: false);
         }
 
-        public static bool IsMathematicalConstant(char c)
+        public static bool IsSuperscript(char c)
         {
             switch (c)
-            {
-                case 'Π': // 03A0 pi
-                case 'ᴨ': // 1D28 pi
-                case 'π': // 03C0 pi
+            { 
+                case '⁰':  // 2070
+                case '¹':  // 00B9
+                case '²':  // 00B2
+                case '³':  // 00B3
+                case '⁴':  // 2074
+                case '⁵':  // 2075
+                case '⁶':  // 2076
+                case '⁷':  // 2077
+                case '⁸':  // 2078
+                case '⁹':  // 2079
                     return true;
             }
             return false;
@@ -89,12 +96,28 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
             switch (RawValue)
             {
-                case "Π": // 03A0 pi
-                case "ᴨ": // 1D28 pi
-                case "π": // 03C0 pi
-                    return Math.PI;
+                case "⁰":  // 2070
+                    return 0;
+                case "¹":  // 00B9
+                    return 1;
+                case "²":  // 00B2
+                    return 2;
+                case "³":  // 00B3
+                    return 3;
+                case "⁴":  // 2074
+                    return 4;
+                case "⁵":  // 2075
+                    return 5;
+                case "⁶":  // 2076
+                    return 6;
+                case "⁷":  // 2077
+                    return 7;
+                case "⁸":  // 2078
+                    return 8;
+                case "⁹":  // 2079
+                    return 9;
             }
-            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(MathematicalConstant).Name));
+            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(Fraction).Name));
         }
     }
 }

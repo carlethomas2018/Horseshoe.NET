@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Horseshoe.NET.Collections;
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
@@ -17,6 +17,9 @@ namespace Horseshoe.NET.Expressions.Tokens
 
         /// <inheritdoc cref="TokenBase.Priority"/>
         public override int Priority => ParserPriority_Date;
+
+        /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
+        public override string PatternIdentifier => "DT";
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
@@ -48,6 +51,12 @@ namespace Horseshoe.NET.Expressions.Tokens
             out int startPos
         )
         {
+            RelayMethodEntered(paramsAndArgs: new Dictionary<string, object>
+            {
+                [nameof(rawSource)] = rawSource.ToString(),
+                [nameof(pos)] = pos,
+                [nameof(tokens)] = CollectionUtil.ToCountAndLastString(tokens)
+            });
             startPos = pos;
 
             if (rawSource[pos] == '#')
@@ -61,13 +70,13 @@ namespace Horseshoe.NET.Expressions.Tokens
                     if (rawSource[pos] == '#')
                     {
                         rawValue = sb.ToString();
-                        return true;
+                        return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: true);
                     }
                 }
             }
 
             rawValue = string.Empty;
-            return false;
+            return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: false);
         }
 
         public static DateTime GetValue(string rawValue)
