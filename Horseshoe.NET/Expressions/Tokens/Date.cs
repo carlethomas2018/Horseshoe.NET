@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
-    public class Date : TokenBase, IValueToken
+    public class Date : ParseableToken, IValueToken
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Date;
@@ -15,7 +15,7 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <inheritdoc cref="IValueToken.ValueType"/>
         public Type ValueType => typeof(DateTime);
 
-        /// <inheritdoc cref="TokenBase.Priority"/>
+        /// <inheritdoc cref="ParseableToken.Priority"/>
         public override int Priority => ParserPriority_Date;
 
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
@@ -37,11 +37,11 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
         }
 
-        /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
-        public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
+        /// <inheritdoc cref="ParseableToken.CreateInstance(string, int)"/>
+        public override ParseableToken CreateInstance(string rawValue, int tokenPos) =>
             new Date(rawValue, tokenPos);
 
-        /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
+        /// <inheritdoc cref="ParseableToken.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
         public override bool Parse
         (
             ReadOnlySpan<char> rawSource,

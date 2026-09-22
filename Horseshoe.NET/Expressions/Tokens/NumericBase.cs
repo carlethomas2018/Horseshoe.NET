@@ -5,7 +5,7 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// <summary>
     /// Represents number e.g. literal, fractional, mathematical constant, etc. 
     /// </summary>
-    public abstract class NumericBase : TokenBase, IValueToken
+    public abstract class NumericBase : ParseableToken, IValueToken
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Number;

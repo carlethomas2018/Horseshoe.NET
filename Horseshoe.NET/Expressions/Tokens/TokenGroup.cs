@@ -5,7 +5,7 @@ using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
-    public class String : ParseableToken, IValueToken
+    public class TokenGroup : TokenBase, IValueToken
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.String;
@@ -16,7 +16,7 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <inheritdoc cref="IValueToken.ValueType"/>
         public Type ValueType => typeof(string);
 
-        /// <inheritdoc cref="ParseableToken.Priority"/>
+        /// <inheritdoc cref="TokenBase.Priority"/>
         public override int Priority => ParserPriority_String;
 
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
@@ -27,7 +27,7 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <summary>
         /// Constructor called via reflection by the parse engine
         /// </summary>
-        public String() : base() 
+        public TokenGroup() : base() 
         { 
         }
 
@@ -36,15 +36,15 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// </summary>
         /// <param name="rawValue">The parsed raw token</param>
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
-        public String(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
+        public TokenGroup(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
         {
         }
 
-        /// <inheritdoc cref="ParseableToken.CreateInstance(string, int)"/>
-        public override ParseableToken CreateInstance(string rawValue, int tokenPos) =>
-            new String(rawValue, tokenPos);
+        /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
+        public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
+            throw new NotImplementedException();
 
-        /// <inheritdoc cref="ParseableToken.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
+        /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
         public override bool Parse
         (
             ReadOnlySpan<char> rawSource,

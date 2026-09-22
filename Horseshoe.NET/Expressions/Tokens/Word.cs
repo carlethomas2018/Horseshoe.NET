@@ -5,12 +5,12 @@ using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
-    public class Word : TokenBase
+    public class Word : ParseableToken
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Word;
 
-        /// <inheritdoc cref="ITokenParser.Priority"/>
+        /// <inheritdoc cref="ParseableToken.Priority"/>
         public override int Priority => ParserPriority_Word;
 
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
@@ -30,11 +30,11 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
         }
 
-        /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
-        public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
+        /// <inheritdoc cref="ParseableToken.CreateInstance(string, int)"/>
+        public override ParseableToken CreateInstance(string rawValue, int tokenPos) =>
             new Number(rawValue, tokenPos);
 
-        /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
+        /// <inheritdoc cref="ParseableToken.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
         public override bool Parse
         (
             ReadOnlySpan<char> rawSource,

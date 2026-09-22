@@ -7,7 +7,7 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// <summary>
     /// Represents operators such as mathematical and comparison used in calculating expressions, e.g. '+', '=', '%', etc.
     /// </summary>
-    public class Operator : TokenBase
+    public class Operator : ParseableToken
     {
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Operator;
@@ -17,8 +17,10 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// </summary>
         public OperatorType OperatorType => GetType(RawValue);
 
-        /// <inheritdoc cref="TokenBase.Priority"/>
+        /// <inheritdoc cref="ParseableToken.Priority"/>
         public override int Priority => ParserPriority_Operator;
+
+        public override string PatternIdentifier => throw new NotImplementedException();
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
@@ -34,11 +36,11 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
         }
 
-        /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
-        public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
+        /// <inheritdoc cref="ParseableToken.CreateInstance(string, int)"/>
+        public override ParseableToken CreateInstance(string rawValue, int tokenPos) =>
             new Operator(rawValue, tokenPos);
 
-        /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
+        /// <inheritdoc cref="ParseableToken.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
         public override bool Parse
         (
             ReadOnlySpan<char> rawSource,
