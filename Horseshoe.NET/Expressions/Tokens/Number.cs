@@ -60,13 +60,12 @@ namespace Horseshoe.NET.Expressions.Tokens
 
             startPos = pos;
             char c = rawSource[pos];
-            (char? next1, char? next2) = Next2(rawSource, pos);
+            char? next1 = Next(rawSource, pos);
 
             if 
             (
                 IsDigit(c) ||
-                (c == '.' && IsDigit(next1)) ||
-                (c == '-' && (IsDigit(next1) || (next1 == '.' && IsDigit(next2))))
+                (c == '.' && IsDigit(next1))
             )
             {
                 sb.Clear();

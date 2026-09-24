@@ -36,10 +36,6 @@ namespace Horseshoe.NET.Expressions
                     return FunctionType.Or;
                 case "IF":
                     return FunctionType.If;
-                case "NOW":
-                    return FunctionType.Now;
-                case "TODAY":
-                    return FunctionType.Today;
                 case "ABS":
                     return FunctionType.Abs;
                 case "COS":

@@ -2,17 +2,20 @@
 
 namespace Horseshoe.NET.Expressions
 {
-    public class Keyword : TokenBase
+    public class Keyword : TokenBase, IValueToken
     {
         /// <summary>
         /// Used by the parsing engine to determine what type of token is being passed in if it matches (see <see cref="Is(string)")./>
         /// </summary>
         public override TokenType Type => TokenType.Word;
 
-        /// <summary>
-        /// The string value represented by the text
-        /// </summary>
-        public string Value => RawValue.ToUpper();
+        /// <inheritdoc cref="IValueToken.ReturnValue"/>
+        public object ReturnValue { get; private set; }
+
+        /// <inheritdoc cref="IValueToken.ReturnValue"/>
+        public System.Type ReturnType { get; private set; }
+
+
 
         public KeywordType KeywordType { get; }
 

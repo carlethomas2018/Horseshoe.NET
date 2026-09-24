@@ -3,17 +3,34 @@
     public enum FunctionType
     {
         Undefined,
+
+        // context-dependent
+        If,
+
+        // boolean
         And,
         Or,
-        If,
+        IsNull,
+
+        // date
         Now,
         Today,
+        DateAdd, 
+
+        // number
         Abs,
         Cos,
         Sin,
         Tan,
         Sec,
         Csc,
-        Cot
+        Cot,
+        DateDiff,
+        Pow,
+        Sqrt,
+
+        // string
+        Substring,
+        Chr
     }
 }

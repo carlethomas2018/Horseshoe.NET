@@ -13,7 +13,7 @@
         /// <summary>
         /// e.g. ½
         /// </summary>
-        FractionalLiteral,
+        NumericFractional,
 
         /// <summary>
         /// e.g. π

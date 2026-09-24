@@ -1,28 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 using Horseshoe.NET.Collections;
+using Horseshoe.NET.Globalization;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
     public class TokenGroup : TokenBase, IValueToken
     {
+        private static Regex _arithmeticPattern;
+        private static Regex ArithmeticPattern 
+        {
+            get 
+            {
+                _arithmeticPattern ??= new Regex("^N[BCFKPS](OMN[BCFKPS])+$"); // '1 + 1', '1 - 1 * 1 + 1', etc.
+                return _arithmeticPattern;
+            }
+        }
+
+        public IEnumerable<TokenBase> Tokens { get; }
+
         /// <inheritdoc cref="TokenBase.Type"/>
-        public override TokenType Type => TokenType.String;
+        public override TokenType Type => TokenType.Group;
 
         /// <inheritdoc cref="IValueToken.Value"/>
-        public object Value => GetValue(RawValue);
+        public object Value => GetValue();
 
         /// <inheritdoc cref="IValueToken.ValueType"/>
         public Type ValueType => typeof(string);
 
-        /// <inheritdoc cref="TokenBase.Priority"/>
-        public override int Priority => ParserPriority_String;
-
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
-        public override string PatternIdentifier => "TX";
-
-        private char QuoteChar { get; set; }
+        public override string PatternIdentifier { get; }
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
@@ -36,64 +46,30 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// </summary>
         /// <param name="rawValue">The parsed raw token</param>
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
-        public TokenGroup(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
+        public TokenGroup(IEnumerable<TokenBase> tokens) : base(CollectionUtil.HasAny(tokens) 
+                                                                    ? string.Join("", tokens.Select(t => t.RawValue)) 
+                                                                    : throw new ExpressionException(Lang.Get("Token.Group.Initialize")), 
+                                                                tokenPos: tokens.First().TokenPos)
         {
+            Tokens = tokens;
+            PatternIdentifier = string.Join("", tokens.Select(t => t.RawValue));
         }
 
-        /// <inheritdoc cref="TokenBase.CreateInstance(string, int)"/>
-        public override TokenBase CreateInstance(string rawValue, int tokenPos) =>
-            throw new NotImplementedException();
+        private object GetValue()
+        {
+            
+        }
 
-        /// <inheritdoc cref="TokenBase.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
-        public override bool Parse
+        protected static Languages Lang { get; } = new Languages
+        {
+            { "Token.Group.Initialize", "Cannot initialize token group, no tokens." },
+        }
+        .AddLanguages
         (
-            ReadOnlySpan<char> rawSource,
-            ref int pos,
-            IEnumerable<TokenBase> tokens,
-            out string rawValue,
-            out int startPos
-        )
-        {
-            RelayMethodEntered(paramsAndArgs: new Dictionary<string, object> 
-            { 
-                [nameof(rawSource)] = rawSource.ToString(), 
-                [nameof(pos)] = pos, 
-                [nameof(tokens)] = CollectionUtil.ToCountAndLastString(tokens) 
-            });
-            startPos = pos;
-
-            if(rawSource[pos].In('\'', '"'))
+            new Language("es")
             {
-                QuoteChar = rawSource[pos++];
-                sb.Clear();
-                sb.Append(QuoteChar);
-
-                for (; pos < rawSource.Length; pos++)
-                {
-                    sb.Append(rawSource[pos]);
-                    if (rawSource[pos] == QuoteChar)
-                    {
-                        rawValue = sb.ToString();
-                        return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: true);
-                    }
-                }
-                throw new ExpressionException(Lang.Get("Token.Parse.Unterminated.String"));
+                { "Token.Group.Initialize", "No se pudo iniciar el grupo de tokens, no hay tokens." },
             }
-
-            rawValue = string.Empty;
-            return RelayMethodReturningValue(message: string.Format("pos={0}, rawValue={1}", pos, rawValue.ToDisplayString()), returnValue: false);
-        }
-
-        /// <summary>
-        /// Returns the string value of a token's raw value
-        /// </summary>
-        /// <param name="rawValue">A token's raw value</param>
-        /// <returns>The string value</returns>
-        public static string GetValue(string rawValue)
-        {
-            return (rawValue.StartsWith("\"") && rawValue.EndsWith("\"")) || (rawValue.StartsWith("'") && rawValue.EndsWith("'"))
-                ? rawValue.Substring(1, rawValue.Length - 2)
-                : rawValue;
-        }
+        );
     }
 }

@@ -11,40 +11,48 @@
         public string RawValue { get; }
 
         /// <summary>
-        /// The type of token represented by a specific TokenBase submlcass./>
+        /// The type of token represented by a specific TokenBase subclass./>
         /// </summary>
         public virtual TokenType Type { get; }
 
         public int TokenPos { get; }
 
         /// <summary>
-        /// A 2 char-length code unique to each token type in order to daisy chain tokens together into phrases.
+        /// A code unique to each token type used to daisy chain tokens together into phrases.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// Each unique code is comprised of a <c>char</c> identifying the return type and a second <c>char</c> reminiscent of the token type.
-        /// Client code can individually override this property and add their own unique codes.
+        /// Identifiers of operators and mathemetical constants are verbatim 1-<c>char</c> codes, 
+        /// all others are 2-<c>char</c> codes identifying the return type and something reminiscent of the token type.
+        /// Client code can override this property with new codes.
         /// </para>
         /// The list of built-in identifiers includes...
         /// <list type="bullet">
         /// <item>TX: text string e.g. "Hello"</item>
+        /// <item>TK: text keyword e.g. 'MachineName'</item>
+        /// <item>TP: text context-based property e.g. 'MyProperty' (-&gt; <c>new { MyProperty = "Hello" }</c>)</item>
+        /// <item>TF: text function e.g. 'If' (-&gt; "If(Age > 50, 'Old', 'Young')")</item>
+        /// <item>TG: text group e.g. (-&gt; "LastName + ' Jr.'")</item>
         /// <item>DT: date/time e.g. #1/2/2003#</item>
-        /// <item>NB: number e.g. -.27</item>
-        /// <item>NC: mathematical constant e.g. π</item>
-        /// <item>NF: fraction e.g. ⅔ (-&gt; "2/3")</item>
-        /// <item>NS: numeric superscript e.g. ³ (-&gt; "2³" or "2^3")</item>
-        /// <item>SB: scope begin e.g. '('</item>
-        /// <item>SE: scope end e.g. ')'</item>
-        /// <item>SS: scope separator e.g. ','</item>
-        /// <item>OA: operator all-facing e.g. =, +</item>
-        /// <item>OR: operator right-facing e.g. √ (-&gt; "-√9" or "³√27")</item>
-        /// <item>OV: operator varying-facing e.g. - (-&gt; "9-6" or "-√9")</item>
-        /// <item>VK: varying return type keyword e.g. HighDate</item>
-        /// <item>VP: varying return type context-based property e.g. MyProperty (-&gt; <c>new { MyProperty = "Hello" }</c>)</item>
-        /// <item>VF: varying return type function e.g. Not (-&gt; "Not(IsWeekday(Today))")</item>
+        /// <item>DK: date keyword e.g. 'HighDate'</item>
+        /// <item>DP: date context-based property e.g. 'MyProperty' (-&gt; <c>new { MyProperty = DateTime.Today }</c>)</item>
+        /// <item>DF: date function e.g. 'DateAdd' (-&gt; "DateAdd('y', BirthDay, 18)")</item>
+        /// <item>DG: date group e.g. (-&gt; "Today + 3")</item>
+        /// <item>NB: number e.g. '-.27'</item>
+        /// <item>NK: numeric keyword e.g. 'Pi'</item>
+        /// <item>NP: numeric context-based property e.g. 'MyProperty' (-&gt; <c>new { MyProperty = MyString.Length }</c>)</item>
+        /// <item>NF: numeric function e.g. 'DateDiff' (-&gt; "DateDiff('y', BirthDay, Today)")</item>
+        /// <item>NG: numeric group e.g. (-&gt; "3³ + 1⅔")</item>
+        /// <item>NR: numeric fraction e.g. '⅔' (-&gt; '2/3')</item>
+        /// <item>NS: numeric superscript e.g. '³' (-&gt; '2³' ['2^3'] or '³√27')</item>
+        /// <item>BK: boolean keyword e.g. 'True' (-&gt; "HasDiabetes=True")</item>
+        /// <item>BP: boolean context-based property e.g. 'HasDiabetes' (-&gt; "HasDiabetes" or "HasDiabetes=True")</item>
+        /// <item>BF: boolean function e.g. 'And' (-&gt; "And(Age > 50, HasDiabetes)")</item>
+        /// <item>SB,SS,SE: scope begin, separator, end e.g. '(,)' (-&gt; "And(Age > 50, HasDiabetes)")</item>
+        /// <item>operators and mathematical constants are verbatim: multiples e.g. +, -, /, *, π are grouped.</item>
         /// </list>
         /// <para>
-        /// For example, the combination of tokens "³√27" produces phrase pattern "NSORNB" that can be easily recognized by the system and linked to an in-code calculation.
+        /// The combination of tokens <c>"³√27"</c> produces combined identifier <c>"NS√NB"</c> which could be identified in pattern <c>"^NS√N[A-Z]$"</c>.
         /// </para>
         /// </remarks>
         public abstract string PatternIdentifier { get; }
@@ -70,7 +78,7 @@
 
         public override string ToString()
         {
-            return $"{Type} {{ Pos = {TokenPos}{(this is IValueToken valueToken ? ", Value = " + valueToken.Value.ToDisplayString() : "")} }}";
+            return $"{Type} {{ Pos = {TokenPos}{(this is IValueToken valueToken ? ", Value = " + valueToken.ReturnValue.ToDisplayString() : "")} }}";
         }
     }
 }

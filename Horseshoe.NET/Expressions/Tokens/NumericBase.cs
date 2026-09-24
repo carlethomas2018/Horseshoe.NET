@@ -7,19 +7,16 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// </summary>
     public abstract class NumericBase : ParseableToken, IValueToken
     {
-        /// <inheritdoc cref="TokenBase.Type"/>
-        public override TokenType Type => TokenType.Number;
-
         /// <summary>
         /// The type of numerical token, e.g. literal, fractional, mathematical constant, etc. 
         /// </summary>
         public abstract NumberType NumberType { get; }
 
-        /// <inheritdoc cref="IValueToken.Value"/>
-        public object Value => GetValue();
+        /// <inheritdoc cref="IValueToken.ReturnValue"/>
+        public object ReturnValue => GetValue();
 
-        /// <inheritdoc cref="IValueToken.ValueType"/>
-        public Type ValueType => typeof(double);
+        /// <inheritdoc cref="IValueToken.ReturnType"/>
+        public Type ReturnType => typeof(double);
 
         /// <summary>
         /// Constructor called via reflection by the parse engine

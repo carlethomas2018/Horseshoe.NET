@@ -8,23 +8,20 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// <summary>
     /// Represents one of a specific subset of unicode symbols for fractional numbers.
     /// </summary>
-    public class Fraction : NumericBase
+    public class NumericFraction : NumericBase
     {
-        /// <inheritdoc cref="TokenBase.Type"/>
-        public override TokenType Type => TokenType.Number;
-
-        public override NumberType NumberType { get; } = NumberType.FractionalLiteral;
+        public override NumberType NumberType { get; } = NumberType.NumericFractional;
 
         /// <inheritdoc cref="ParseableToken.Priority"/>
         public override int Priority => ParserPriority_Fraction;
 
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
-        public override string PatternIdentifier => "NF";
+        public override string PatternIdentifier => "NR";
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
         /// </summary>
-        internal Fraction() : base() 
+        internal NumericFraction() : base() 
         { 
         }
 
@@ -33,13 +30,13 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// </summary>
         /// <param name="rawValue">The parsed raw token</param>
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
-        public Fraction(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
+        public NumericFraction(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
         {
         }
 
         /// <inheritdoc cref="ParseableToken.CreateInstance(string, int)"/>
         public override ParseableToken CreateInstance(string rawValue, int tokenPos) =>
-            new Fraction(rawValue, tokenPos);
+            new NumericFraction(rawValue, tokenPos);
 
         /// <inheritdoc cref="ParseableToken.Parse(ReadOnlySpan{char}, ref int, IEnumerable{TokenBase}, out string, out int)"/>
         public override bool Parse
@@ -111,7 +108,7 @@ namespace Horseshoe.NET.Expressions.Tokens
                 case "⅞":  // 7/8
                     return 0.875;
             }
-            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(Fraction).Name));
+            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(NumericFraction).Name));
         }
     }
 }

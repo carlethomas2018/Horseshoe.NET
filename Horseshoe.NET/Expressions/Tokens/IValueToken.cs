@@ -10,11 +10,11 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <summary>
         /// The value represented by the token
         /// </summary>
-        object Value { get; }
+        object ReturnValue { get; }
 
         /// <summary>
         /// The type of value represented by the token
         /// </summary>
-        Type ValueType { get; }
+        Type ReturnType { get; }
     }
 }

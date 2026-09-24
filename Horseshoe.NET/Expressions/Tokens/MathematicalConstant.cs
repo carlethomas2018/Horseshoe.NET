@@ -10,9 +10,6 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// </summary>
     public class MathematicalConstant : NumericBase
     {
-        /// <inheritdoc cref="TokenBase.Type"/>
-        public override TokenType Type => TokenType.Number;
-
         public override NumberType NumberType { get; } = NumberType.MathematicalConstant;
 
         /// <inheritdoc cref="TokenBase.Priority"/>

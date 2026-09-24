@@ -22,7 +22,32 @@ namespace Horseshoe.NET.Expressions.Tokens
         public const int ParserPriority_NumericalSuperscript = 130;  // e.g. 2³
         public const int ParserPriority_Word = 140;  // e.g. keyword, function, context-based property
         public const int ParserPriority_Scope = 150;  // i.e. '(', ',', ')'
-        public const int ParserPriority_Operator = 160;  // e.g. =, +, %, √
+        public const int ParserPriority_Operator = 160;  // e.g. -, =, +, <, %, √
+
+        /// <inheritdoc cref="TokenBase.Type"/>
+        public override TokenType Type
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(PatternIdentifier))
+                    return TokenType.Undefined;
+
+                if (PatternIdentifier.Length == 1)
+                {
+                    if (char.IsSymbol(PatternIdentifier[0]))
+                        return TokenType.Operator;
+                    return TokenType.Undefined;
+                }
+
+                switch (PatternIdentifier[0])
+                {
+                    case 'D': return TokenType.Date;
+                    case 'N': return TokenType.Number;
+                    case 'T': return TokenType.String;
+                    default: return TokenType.Undefined;
+                }
+            }
+        }
 
         /// <summary>
         /// Determines the order in which parsers are run, lower numbers are higher priority.  
@@ -77,7 +102,7 @@ namespace Horseshoe.NET.Expressions.Tokens
 
         public override string ToString()
         {
-            return $"{Type} {{ Pos = {TokenPos}{(this is IValueToken valueToken ? ", Value = " + valueToken.Value.ToDisplayString() : "")} }}";
+            return $"{Type} {{ Pos = {TokenPos}{(this is IValueToken valueToken ? ", Value = " + valueToken.ReturnValue.ToDisplayString() : "")} }}";
         }
 
         private static string traceGroup;

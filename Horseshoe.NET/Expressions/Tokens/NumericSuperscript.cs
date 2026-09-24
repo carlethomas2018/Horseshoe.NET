@@ -10,9 +10,6 @@ namespace Horseshoe.NET.Expressions.Tokens
     /// </summary>
     public class NumericSuperscript : NumericBase
     {
-        /// <inheritdoc cref="TokenBase.Type"/>
-        public override TokenType Type => TokenType.Number;
-
         public override NumberType NumberType { get; } = NumberType.Superscript;
 
         /// <inheritdoc cref="ParseableToken.Priority"/>
@@ -117,7 +114,7 @@ namespace Horseshoe.NET.Expressions.Tokens
                 case "⁹":  // 2079
                     return 9;
             }
-            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(Fraction).Name));
+            throw new ExpressionException(string.Format(Lang.Get("Token.Parse.Unexpected.{value}.{type}"), RawValue.ToDisplayString(), typeof(NumericFraction).Name));
         }
     }
 }
