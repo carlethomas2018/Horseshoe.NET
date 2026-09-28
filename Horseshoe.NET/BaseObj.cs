@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Horseshoe.NET.CodeTrace;
+using Horseshoe.NET.Collections;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
-using Horseshoe.NET.CodeTrace;
 
 namespace Horseshoe.NET
 {
@@ -17,6 +17,10 @@ namespace Horseshoe.NET
         {
             TraceGroup = GetType().Namespace;
         }
+
+        /* * * * * * * * * * * * * * * * * *
+         *    CODE TRACE
+         * * * * * * * * * * * * * * * * * */
 
         /// <inheritdoc cref="SystemCodeTracing.RelayMultiLineMessage(IEnumerable{string}, IndentAction, int?, string)"/>
         protected void RelayMessage(string line, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string traceGroup = null)
@@ -53,5 +57,23 @@ namespace Horseshoe.NET
         {
             return SystemCodeTracing.RelayMethodReturningValue(message: message, returnValue: returnValue, traceGroup: traceGroup ?? TraceGroup);
         }
+
+
+        /* * * * * * * * * * * * * * * * * *
+         *    COLLECTIONS
+         * * * * * * * * * * * * * * * * * */
+       
+        /// <inheritdoc cref="CollectionUtil.HasAny{T}(IEnumerable{T})"/>
+        public static bool HasAny<T>(IEnumerable<T> collection) =>
+            CollectionUtil.HasAny(collection);
+
+        /// <inheritdoc cref="CollectionUtil.HasAny{T}(IEnumerable{T}, Func{T, bool})"/>
+        public static bool HasAny<T>(IEnumerable<T> collection, Func<T, bool> predicate) =>
+            CollectionUtil.HasAny(collection, predicate);
+
+        /// <inheritdoc cref="CollectionUtil.IsNullOrEmpty{T}(IEnumerable{T})"/>
+        public static bool IsNullOrEmpty<T>(IEnumerable<T> collection) =>
+            CollectionUtil.IsNullOrEmpty(collection);
+
     }
 }

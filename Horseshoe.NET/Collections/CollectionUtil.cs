@@ -40,8 +40,6 @@ namespace Horseshoe.NET.Collections
 
         public static bool IsNullOrEmpty<T>(IEnumerable<T> collection) => !HasAny(collection);
 
-        public static bool IsNullOrEmpty<T>(IEnumerable<T> collection, Func<T, bool> predicate) => !HasAny(collection, predicate);
-
         public static string ToCountAndLastString<T>(IEnumerable<T> collection)
         {
             if (collection == null)

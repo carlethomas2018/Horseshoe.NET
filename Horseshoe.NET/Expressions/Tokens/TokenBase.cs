@@ -49,10 +49,10 @@
         /// <item>BP: boolean context-based property e.g. 'HasDiabetes' (-&gt; "HasDiabetes" or "HasDiabetes=True")</item>
         /// <item>BF: boolean function e.g. 'And' (-&gt; "And(Age > 50, HasDiabetes)")</item>
         /// <item>SB,SS,SE: scope begin, separator, end e.g. '(,)' (-&gt; "And(Age > 50, HasDiabetes)")</item>
-        /// <item>operators and mathematical constants are verbatim: multiples e.g. +, -, /, *, π are grouped.</item>
+        /// <item>+, -, %, etc.: operators and mathematical constants are verbatim: multiples are grouped e.g. +, -, ×, ÷, π.</item>
         /// </list>
         /// <para>
-        /// The combination of tokens <c>"³√27"</c> produces combined identifier <c>"NS√NB"</c> which could be identified in pattern <c>"^NS√N[A-Z]$"</c>.
+        /// The token group <c>"³√27"</c> produces combined identifier <c>"NS√NB"</c> which could be identified in pattern <c>"^(NS)?√N[A-Z]$"</c>.
         /// </para>
         /// </remarks>
         public abstract string PatternIdentifier { get; }

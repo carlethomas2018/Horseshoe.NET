@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using Horseshoe.NET.Collections;
 using Horseshoe.NET.Globalization;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
-    public class TokenGroup : TokenBase, IValueToken
+    public abstract class TokenGroup : TokenBase, IValueToken
     {
-        private static Regex _arithmeticPattern;
-        private static Regex ArithmeticPattern 
+        public abstract string MatchPattern { get; }
+        private Regex _pattern;
+        public Regex Pattern
         {
-            get 
+            get
             {
-                _arithmeticPattern ??= new Regex("^N[BCFKPS](OMN[BCFKPS])+$"); // '1 + 1', '1 - 1 * 1 + 1', etc.
-                return _arithmeticPattern;
+                _pattern ??= new Regex("^" + MatchPattern + "$");
+                return _pattern;
             }
         }
 
@@ -25,42 +25,70 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <inheritdoc cref="TokenBase.Type"/>
         public override TokenType Type => TokenType.Group;
 
-        /// <inheritdoc cref="IValueToken.Value"/>
-        public object Value => GetValue();
+        private object _returnValue;
+        private Type _returnType;
 
-        /// <inheritdoc cref="IValueToken.ValueType"/>
-        public Type ValueType => typeof(string);
+        /// <inheritdoc cref="IValueToken.ReturnValue"/>
+        public object ReturnValue 
+        { 
+            get 
+            {
+                if (_returnValue == null && _returnType == null)
+                    _ProcessTokens();
+                return _returnValue;
+            }
+        }
+
+        /// <inheritdoc cref="IValueToken.ReturnType"/>
+        public Type ReturnType 
+        { 
+            get 
+            {
+                if (_returnType == null)
+                    _ProcessTokens();
+                return _returnType;
+            }
+        }
 
         /// <inheritdoc cref="TokenBase.PatternIdentifier"/>
         public override string PatternIdentifier { get; }
 
         /// <summary>
-        /// Constructor called via reflection by the parse engine
+        /// Constructor called via reflection by the expression engine
         /// </summary>
-        public TokenGroup() : base() 
-        { 
+        public TokenGroup() : base()
+        {
         }
 
         /// <summary>
-        /// Constructor used by token instances, also called via reflection by the parse engine
+        /// Constructor used by token group instances
         /// </summary>
-        /// <param name="rawValue">The parsed raw token</param>
-        /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
-        public TokenGroup(IEnumerable<TokenBase> tokens) : base(CollectionUtil.HasAny(tokens) 
-                                                                    ? string.Join("", tokens.Select(t => t.RawValue)) 
-                                                                    : throw new ExpressionException(Lang.Get("Token.Group.Initialize")), 
-                                                                tokenPos: tokens.First().TokenPos)
+        /// <param name="tokens">Tokens that have been grouped together</param>
+        public TokenGroup(IEnumerable<TokenBase> tokens) : base
+        (
+            HasAny(tokens) 
+                ? string.Join("", tokens.Select(t => t.RawValue)) 
+                : throw new ExpressionException(Lang.Get("Token.Group.Initialize")), 
+            tokenPos: tokens.First().TokenPos
+        )
         {
             Tokens = tokens;
             PatternIdentifier = string.Join("", tokens.Select(t => t.RawValue));
         }
 
-        private object GetValue()
+        public void IsMatch(string groupPattern) =>
+            Pattern.IsMatch(groupPattern);
+
+        private void _ProcessTokens()
         {
-            
+            ProcessTokens(out object returnValue, out Type returnType);
+            _returnValue = returnValue;
+            _returnType = returnType;
         }
 
-        protected static Languages Lang { get; } = new Languages
+        public abstract void ProcessTokens(out object returnValue, out Type returnType);
+
+        private static Languages Lang { get; } = new Languages
         {
             { "Token.Group.Initialize", "Cannot initialize token group, no tokens." },
         }

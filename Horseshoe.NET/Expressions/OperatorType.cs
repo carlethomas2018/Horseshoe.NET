@@ -9,6 +9,7 @@
         Multiply,
         Divide,
         Equal,
+        Not,
         NotEqual,
         GreaterThan,
         GreaterThanOrEqual,

@@ -15,12 +15,12 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <summary>
         /// The type of operator
         /// </summary>
-        public OperatorType OperatorType => GetType(RawValue);
+        public OperatorType OperatorType { get; }
 
         /// <inheritdoc cref="ParseableToken.Priority"/>
         public override int Priority => ParserPriority_Operator;
 
-        public override string PatternIdentifier => throw new NotImplementedException();
+        public override string PatternIdentifier { get; }
 
         /// <summary>
         /// Constructor called via reflection by the parse engine
@@ -34,6 +34,9 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
         public Operator(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
         {
+            Process(rawValue, out OperatorType type, out string patternIdentifier);
+            OperatorType = type == OperatorType.Undefined ? throw new ExpressionException("Unrecognized operator") : type;
+            PatternIdentifier = patternIdentifier;
         }
 
         /// <inheritdoc cref="ParseableToken.CreateInstance(string, int)"/>
@@ -52,111 +55,99 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
             startPos = pos;
 
-            if (IsOperator(rawSource[pos], out bool isSingleCharOperator))
+            Process(rawSource[pos], out OperatorType type, out _);
+
+            if (type == OperatorType.Undefined)
             {
-                sb.Clear();
-                sb.Append(rawSource[pos++]);
+                rawValue = string.Empty;
+                return false;
+            }
 
-                if (isSingleCharOperator)
-                {
-                    // tokenize the single-char operator parsed up this point
-                    rawValue = sb.ToString();
-                    return true;
-                }
+            char? next = Next(rawSource, pos);
+            sb.Clear();
+            sb.Append(rawSource[pos++]);
 
-                for (; pos < rawSource.Length; pos++)
-                {
-                    if (IsOperator(rawSource[pos], out isSingleCharOperator))
-                    {
-                        // tokenize the multi-char operator parsed up this point and then
-                        // pass the buck to the next round of parsing to separately tokenize this single-char operator
-                        if (isSingleCharOperator)
-                        {
-                            rawValue = sb.ToString();
-                            return true;
-                        }
-                        sb.Append(rawSource[pos]);
-                    }
-                    else break;
-                }
+            Process(next, out type, out _);
 
-                // tokenize the multi-char operator parsed up this point
+            // is this a one-character operator?
+            if (type == OperatorType.Undefined)
+            {
                 rawValue = sb.ToString();
                 return true;
             }
 
-            rawValue = string.Empty;
-            return false;
+            // this is a two-character operator
+            pos++;
+            sb.Append(next ?? throw new ThisShouldNeverHappenException("next was null"));
+            rawValue = sb.ToString();
+            return true;
         }
 
         public override string ToString() =>
             $"{Type} {{ Pos = {TokenPos}, OperatorType = {OperatorType.ToDisplayString()}, Text = {RawValue.ToDisplayString()} }}";
 
-        public static bool IsOperator(char c, out bool isSingleCharOperator)
+        public static void Process(char? c, out OperatorType type, out string patternIdentifier)
         {
-            isSingleCharOperator = false;
+            type = OperatorType.Undefined;
+            patternIdentifier = c.HasValue ? new string(c.Value, 1) : string.Empty;
             switch (c)
             {
                 case '+':  // plus
+                    type = OperatorType.Add; break;
                 case '-':  // 002D minus
                 case '−':  // 2212 minus
+                    type = OperatorType.Subtract;
+                    patternIdentifier = "-"; break;
                 case '*':  // 002A multiply
                 case '×':  // 00D7 multiply
                 case '·':  // 00B7 multiply
+                    type = OperatorType.Multiply;
+                    patternIdentifier = "×"; break;
                 case '/':  // 002F divide
                 case '∕':  // 2215 divide
                 case '÷':  // 00F7 divide
+                    type = OperatorType.Divide;
+                    patternIdentifier = "÷"; break;
                 case '%':  // modulus
-                    isSingleCharOperator = true;
-                    return true;
+                    type = OperatorType.Modulus; break;
                 case '=':
+                    type = OperatorType.Equal; break;
                 case '!':
+                    type = OperatorType.Not; break;
                 case '<':
+                    type = OperatorType.LessThan; break;
                 case '>':
-                    return true;
+                    type = OperatorType.GreaterThan; break;
             }
-            return false;
         }
 
-        /// <summary>
-        /// Chooses an operator type matching the raw value
-        /// </summary>
-        /// <param name="rawValue">The original text value parsed from the source text</param>
-        /// <returns>A matching operator type, or Undefined</returns>
-        public static OperatorType GetType(string rawValue)
+        public static void Process(string oper, out OperatorType type, out string patternIdentifier)
         {
-            switch (rawValue)
+            if (string.IsNullOrEmpty(oper))
+                throw new ThisShouldNeverHappenException("raw or blank operator");
+
+            patternIdentifier = oper;
+
+            switch (oper.Length)
             {
-                case "+":
-                    return OperatorType.Add;
-                case "-":  // 002D
-                case "−":  // 2212
-                    return OperatorType.Subtract;
-                case "*":  // 002A
-                case "×":  // 00D7
-                case "·":  // 00B7
-                    return OperatorType.Multiply;
-                case "/":  // 002F
-                case "∕":  // 2215
-                case "÷":  // 00F7
-                    return OperatorType.Divide;
-                case "%":
-                    return OperatorType.Modulus;
-                case "=":
-                    return OperatorType.Equal;
-                case "!=":
-                case "<>":
-                    return OperatorType.NotEqual;
-                case ">":
-                    return OperatorType.GreaterThan;
-                case ">=":
-                    return OperatorType.GreaterThanOrEqual;
-                case "<":
-                    return OperatorType.LessThan;
-                case "<=":
-                    return OperatorType.LessThanOrEqual;
+                case 1:
+                    Process(oper[0], out type, out patternIdentifier); return;
+                case 2:
+                    switch (oper)
+                    {
+                        case "!=":
+                        case "<>":
+                            type = OperatorType.NotEqual; return;
+                        case ">=":
+                            type = OperatorType.GreaterThanOrEqual; return;
+                        case "<=":
+                            type = OperatorType.LessThanOrEqual; return;
+                        default:
+                            throw new ExpressionException("unrecognized operator");
+                    }
+                default:
+                    throw new ThisShouldNeverHappenException("operator exceeds max chars");
             }
-            return OperatorType.Undefined;
         }
     }
 }

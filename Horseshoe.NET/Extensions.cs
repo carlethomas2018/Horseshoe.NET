@@ -323,6 +323,38 @@ namespace Horseshoe.NET
         /// <summary>
         /// Determines whether the criteria collection contains the supplied value.  Inspired by SQL.
         /// </summary>
+        /// <typeparam name="T">Type of enum</typeparam>
+        /// <param name="value">An enum value</param>
+        /// <param name="criteria">A collection in which to look up the specified value.</param>
+        /// <returns>Returns <c>true</c> if the collections contains the value, otherwise<c>false</c>.</returns>
+        public static bool In<T>(this T value, params T[] criteria) where T : Enum
+        {
+            return Array.IndexOf(criteria, value) > -1;
+        }
+
+        /// <summary>
+        /// Determines whether the criteria collection contains the supplied value.  Inspired by SQL.
+        /// </summary>
+        /// <param name="value">A value</param>
+        /// <param name="criteria">A collection in which to look up the specified value.</param>
+        /// <returns>Returns <c>true</c> if the collections contains the value, otherwise<c>false</c>.</returns>
+        public static bool In<T>(this T value, IEnumerable<T> criteria) where T : Enum
+        {
+            if (criteria == null)
+                return false;
+
+            foreach (T t in criteria)
+            {
+                if (t.Equals(value))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the criteria collection contains the supplied value.  Inspired by SQL.
+        /// </summary>
         /// <param name="value">A value</param>
         /// <param name="criteria">A collection in which to look up the specified value.</param>
         /// <returns>Returns <c>true</c> if the collections contains the value, otherwise<c>false</c>.</returns>
