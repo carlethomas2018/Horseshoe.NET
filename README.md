@@ -1,4 +1,4 @@
-﻿![Horseshoe.NET icon](https://raw.githubusercontent.com/carlethomas2018/Horseshoe.NET/blob/main/assets/images/horseshoe-icon-256x256.png)
+﻿![Horseshoe.NET icon](https://raw.githubusercontent.com/carlethomas2018/Horseshoe.NET/refs/heads/main/assets/images/horseshoe-icon-256x256.png)
 
 # Horseshoe.NET
 
