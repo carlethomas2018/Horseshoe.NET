@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Horseshoe.NET.Collections;
 using Horseshoe.NET.Globalization;
+using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Expressions.Tokens
 {
@@ -72,8 +74,15 @@ namespace Horseshoe.NET.Expressions.Tokens
             tokenPos: tokens.First().TokenPos
         )
         {
+            RelayMethodEntered
+            (
+                param01: nameof(tokens), arg01: TextUtil.Truncate(CollectionUtil.ToString(tokens), 100, truncateIndicator: "...", position: HorizontalPosition.Center)
+            );
+
             Tokens = tokens;
             PatternIdentifier = string.Join("", tokens.Select(t => t.RawValue));
+
+            RelayMethodReturning();
         }
 
         public void IsMatch(string groupPattern) =>

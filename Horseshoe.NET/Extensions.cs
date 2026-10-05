@@ -415,37 +415,38 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// Displays objects in a uniform way e.g. numbers... -3.1, 3.141592652589, others... "Hello world!", "2/12/2022", "System.String"
+        /// Determines whether the criteria collection contains the supplied value, not case sensitive.  Inspired by SQL.
         /// </summary>
-        /// <param name="obj">An object</param>
-        /// <returns>A display string</returns>
-        public static string ToDisplayString(this object obj)
+        /// <param name="value">A value</param>
+        /// <param name="criteria">A collection in which to look up the specified value.</param>
+        /// <returns>Returns <c>true</c> if the collections contains the value, otherwise<c>false</c>.</returns>
+        public static bool InIgnoreCase(this string value, params string[] criteria)
         {
-            if (obj == null)
-                return "[null]";
-
-            Type type = obj.GetType();
-
-            if (type.IsNumeric())
-                return obj.ToString();
-
-            if (obj is DateTime dateTime)
-            {
-                obj = dateTime.Hour == 0 && dateTime.Minute == 0 && dateTime.Second == 0 && dateTime.Millisecond == 0
-                    ? dateTime.ToShortDateString()
-                    : dateTime.ToShortDateString() + " " + dateTime.ToShortTimeString();
-            }
-
-            else if (obj is MethodBase methodBase)
-            {
-                obj = methodBase.DeclaringType.Name + "::" + methodBase.Name;
-            }
-
-            else  // includes enums
-            {
-                obj = obj.ToString();
-            }
-            return "\"" + obj + "\"";
+            return criteria != null && criteria.Any(s => (s == null && value == null) || (s != null && s.Equals(value, StringComparison.OrdinalIgnoreCase)));
         }
+
+        /// <summary>
+        /// Determines whether the criteria collection contains the supplied value, not case sensitive.  Inspired by SQL.
+        /// </summary>
+        /// <param name="value">A value</param>
+        /// <param name="criteria">A collection in which to look up the specified value.</param>
+        /// <returns>Returns <c>true</c> if the collections contains the value, otherwise<c>false</c>.</returns>
+        public static bool InIgnoreCase(this string value, IEnumerable<string> criteria)
+        {
+            if (criteria == null)
+                return false;
+
+            foreach (string s in criteria)
+            {
+                if ((s == null && value == null) || (s != null && s.Equals(value, StringComparison.OrdinalIgnoreCase)))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc cref="Util.ToDisplayString(object,bool)"/>
+        public static string ToDisplayString(this object obj, bool fqn = false) =>
+            Util.ToDisplayString(obj, fqn);
     }
 }

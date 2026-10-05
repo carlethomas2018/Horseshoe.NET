@@ -1,6 +1,12 @@
 MIT License
 
-Copyright (c) 2026 carlethomas2018
+Copyright (c) 2020-2026 Carl Thomas
+
+Applies to all software, compiled or otherwise, distributed by me on 
+https://nuget.org/packages/Horseshoe.NET or https://github.com/carlethomas2018/.
+For example, Horseshoe.NET distributables (e.g. NuGet packages) along with the
+source code as well as any and all incidentals published by me such as JavaScript 
+scripts, sample files, code samples, blogs, documentation, instructional videos, etc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

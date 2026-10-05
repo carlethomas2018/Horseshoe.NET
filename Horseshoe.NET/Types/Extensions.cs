@@ -56,6 +56,12 @@ namespace Horseshoe.NET.Types
             return TypeUtil.TryGetValue(obj, propertyName, out value);
         }
 
+        /// <summary>
+        /// Returns a programmer friendly name for a type, e.g. "int" instead of "System.Int32".
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="shortenFullNames"></param>
+        /// <returns></returns>
         public static string ToShortName(this Type type, bool shortenFullNames = false)
         {
             if (type == typeof(string))
@@ -64,12 +70,22 @@ namespace Horseshoe.NET.Types
                 return "datetime";
             if (type == typeof(bool))
                 return "bool";
+            if (type == typeof(sbyte))
+                return "sbyte";
+            if (type == typeof(byte))
+                return "byte";
             if (type == typeof(short))
                 return "short";
+            if (type == typeof(ushort))
+                return "ushort";
             if (type == typeof(int))
                 return "int";
+            if (type == typeof(uint))
+                return "uint";
             if (type == typeof(long))
                 return "long";
+            if (type == typeof(ulong))
+                return "ulong";
             if (type == typeof(float))
                 return "float";
             if (type == typeof(double))

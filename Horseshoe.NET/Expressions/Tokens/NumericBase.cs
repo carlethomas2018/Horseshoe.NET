@@ -32,6 +32,13 @@ namespace Horseshoe.NET.Expressions.Tokens
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
         public NumericBase(string rawValue, int tokenPos = -1) : base(rawValue, tokenPos: tokenPos)
         {
+            RelayMethodEntered
+            (
+                param01: nameof(rawValue), arg01: rawValue,
+                param02: nameof(tokenPos), arg02: tokenPos
+            );
+
+            RelayMethodReturning();
         }
 
         public abstract double GetValue();

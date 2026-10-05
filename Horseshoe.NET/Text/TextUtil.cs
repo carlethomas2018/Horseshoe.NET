@@ -54,43 +54,43 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Adds padding to the left and right of the text to center it within a specified total width.  
-        /// The default behavior is to throw an exception if the text exceeds the total width, but you can allow truncation by setting <paramref name="okToTruncate"/> to true.  
+        /// Adds padding to the left and right of <c>text</c> to center it within a specified total width.  
+        /// The default behavior is to throw an exception if the text exceeds the total width, but you can allow truncation by setting <paramref name="exceedsBehavior"/> to 'Truncate'.  
         /// If truncation occurs, a truncate indicator will be appended to the truncated text.
         /// </summary>
         /// <param name="text">A text string</param>
-        /// <param name="totalWidth">The total width of the padded string</param>
+        /// <param name="totalLength">The total width of the padded string</param>
         /// <param name="paddingChar">The character to use for padding</param>
         /// <param name="exceedsBehavior">The behavior to exhibit if the text exceeds the total width</param>
         /// <param name="truncateIndicator">The string to use as a truncate indicator</param>
         /// <param name="nudgeRightIfPaddingIsUneven">A value indicating whether to nudge the text to the right if the padding is uneven</param>
-        /// <returns></returns>
+        /// <returns>A padded string</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static string PadCenter(string text, int totalWidth, char paddingChar = ' ', ExceedsTargetLengthBehavior exceedsBehavior = default, string truncateIndicator = "…", bool nudgeRightIfPaddingIsUneven = false)
+        public static string PadCenter(string text, int totalLength, char paddingChar = ' ', ExceedsTargetLengthBehavior exceedsBehavior = default, string truncateIndicator = "…", bool nudgeRightIfPaddingIsUneven = false)
         {
             if (text == null)
                 throw new ArgumentNullException(nameof(text));
 
-            if (text.Length > totalWidth)
+            if (text.Length > totalLength)
             {
                 switch (exceedsBehavior)
                 {
                     case ExceedsTargetLengthBehavior.ThrowException:
-                        throw new ArgumentException(Lang.Get("PadCenter.TotalWidth"), nameof(totalWidth));
+                        throw new ArgumentException(Lang.Get("TextUtil.PadCenter.TotalLength"), nameof(totalLength));
                     case ExceedsTargetLengthBehavior.Truncate:
-                        text = text.Substring(0, totalWidth - truncateIndicator.Length) + truncateIndicator;
+                        text = Truncate(text, totalLength, truncateIndicator, HorizontalPosition.Center);
                         break;
                     default:
                         return text;
                 }
             }
 
-            if (text.Length == totalWidth)
+            if (text.Length == totalLength)
                 return text;
 
-            int paddingTotal = totalWidth - text.Length;
+            int paddingTotal = totalLength - text.Length;
             int paddingLeft = nudgeRightIfPaddingIsUneven
                 ? (int)Math.Ceiling(paddingTotal / 2.0)
                 : paddingTotal / 2;
@@ -359,6 +359,47 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
+        /// Shortens text to maxLength characters, if applicable, inserting truncateIndicator at the specified horizontal
+        /// position. Returns an empty string if text is <c>null</c>.
+        /// </summary>
+        /// <param name="text">The input string to truncate. May be null; null is returned unchanged.</param>
+        /// <param name="maxLength">Maximum length of the returned string, in characters. Must be non-negative and at least the length of truncateIndicator.</param>
+        /// <param name="truncateIndicator">Text used to indicate truncation (defaults to …); counted toward maxLength.</param>
+        /// <param name="position">Horizontal position where truncateIndicator is placed i.e. Left, Center or Right (None)</param>
+        /// <returns>A string whose length does not exceed maxLength, or empty string when text is null.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if maxLength does not even cover the length of truncateIndicator.</exception>
+        /// <exception cref="ThisShouldNeverHappenException">Thrown if an unrecognized HorizontalPosition value is supplied.</exception>
+        public static string Truncate(string text, int maxLength, string truncateIndicator = "…", HorizontalPosition position = HorizontalPosition.None)
+        {
+            text ??= string.Empty;
+            truncateIndicator ??= string.Empty;
+
+            if (maxLength < truncateIndicator.Length)
+                throw new ArgumentOutOfRangeException(nameof(maxLength), string.Format(Lang.Get("TextUtil.Truncate.MaxLength.{ti}.{tiLength}"), nameof(truncateIndicator), truncateIndicator.Length));
+
+            if (maxLength <= 0)
+                return string.Empty;
+
+            if (text.Length <= maxLength)
+                return text;
+
+            switch (position)
+            {
+                case HorizontalPosition.Left:
+                    return text.Substring(0, maxLength - truncateIndicator.Length) + truncateIndicator;
+                case HorizontalPosition.Center:
+                    int leftLength = (maxLength - truncateIndicator.Length) / 2;
+                    int rightLength = maxLength - truncateIndicator.Length - leftLength;
+                    return text.Substring(0, leftLength) + truncateIndicator + text.Substring(text.Length - rightLength);
+                case HorizontalPosition.None:
+                case HorizontalPosition.Right:
+                    return truncateIndicator + text.Substring(text.Length - (maxLength - truncateIndicator.Length));
+                default:
+                    throw new ThisShouldNeverHappenException("invalid horizontal position");
+            }
+        }
+
+        /// <summary>
         /// Returns null if the input text is null, empty, or whitespace; otherwise, returns the trimmed text.
         /// </summary>
         /// <param name="text">A text string</param>
@@ -378,13 +419,15 @@ namespace Horseshoe.NET.Text
 
         private static Languages Lang { get; } = new Languages
         {
-            { "PadCenter.TotalWidth", "Total width must be greater than or equal to the length of the text." }
+            { "TextUtil.PadCenter.TotalLength", "Total length must be greater than or equal to the length of the text." },
+            { "TextUtil.Truncate.MaxLength.{ti}.{tiLength}", "Max length must be at least the length of {0} ({1})." }
         }
         .AddLanguages
         (
             new Language("es")
             {
-                { "PadCenter.TotalWidth", "El ancho total debe ser mayor o igual que la longitud del texto." }
+                { "TextUtil.PadCenter.TotalLength", "La longitud total debe ser mayor o igual que la longitud del texto." },
+                { "TextUtil.Truncate.MaxLength.{ti}.{tiLength}", "La longitud máxima debe ser al menos la longitud de {0} ({1})." }
             }
         );
     }

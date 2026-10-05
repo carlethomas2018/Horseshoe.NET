@@ -40,12 +40,33 @@ namespace Horseshoe.NET.Collections
 
         public static bool IsNullOrEmpty<T>(IEnumerable<T> collection) => !HasAny(collection);
 
+        /// <summary>
+        /// Renders a collection of items to a single string e.g. <c>[ 1, "Bob", [null]]</c>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static string ToString<T>(IEnumerable<T> collection)
+        {
+            if (collection == null)
+                return "[null]";
+
+            return collection.Any() 
+                ? "{ " + string.Join(", ", collection.Select(t => Util.ToDisplayString(t))) + " }"
+                : "{ }";
+        }
+
         public static string ToCountAndLastString<T>(IEnumerable<T> collection)
         {
             if (collection == null)
                 return "[null]";
 
-            return "[" + collection.Count() + "]" + (collection.Any() ? " " + collection.Last().ToDisplayString() : "");
+            if (!collection.Any())
+                return "{ }";
+
+            return collection.Count() > 1
+                ? "{[" + (collection.Count() - 1) + "]... " + Util.ToDisplayString(collection.Last()) + " }"
+                : "{ " + Util.ToDisplayString(collection.Single()) + " }";
         }
     }
 }

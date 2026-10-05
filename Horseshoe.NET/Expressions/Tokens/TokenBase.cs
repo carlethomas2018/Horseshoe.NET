@@ -72,8 +72,16 @@
         /// <param name="tokenPos">The <c>0</c>-based position of the parsed token in the original raw input, default is <c>-1</c></param>
         public TokenBase(string rawValue, int tokenPos = -1)
         {
+            RelayMethodEntered
+            (
+                param01: nameof(rawValue), arg01: rawValue, 
+                param02: nameof(tokenPos), arg02: tokenPos
+            );
+
             RawValue = rawValue?.Trim() ?? string.Empty;
             TokenPos = tokenPos;
+
+            RelayMethodReturning();
         }
 
         public override string ToString()
