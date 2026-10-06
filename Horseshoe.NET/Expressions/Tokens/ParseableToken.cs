@@ -134,7 +134,7 @@ namespace Horseshoe.NET.Expressions.Tokens
             bool ignoreWhitespace = false
         )
         {
-            SystemCodeTracing.RelayMethodEntered(paramsAndArgs: new Dictionary<string, object>
+            CodeTraceEngine.RelayMethodEntered(paramsAndArgs: new Dictionary<string, object>
             {
                 [nameof(rawSource)] = rawSource.ToString(),
                 [nameof(pos)] = pos
@@ -146,9 +146,9 @@ namespace Horseshoe.NET.Expressions.Tokens
                 c = rawSource[_pos];
                 if (ignoreWhitespace && c.In(' ', '\x00A0', '\t', '\n', '\r'))
                     continue;
-                return SystemCodeTracing.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: c, traceGroup: GetTraceGroup());
+                return CodeTraceEngine.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: c, traceGroup: GetTraceGroup());
             }
-            return SystemCodeTracing.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: null as char?, traceGroup: GetTraceGroup());
+            return CodeTraceEngine.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: null as char?, traceGroup: GetTraceGroup());
         }
 
         public static (char?, char?) Next2
@@ -158,7 +158,7 @@ namespace Horseshoe.NET.Expressions.Tokens
             bool ignoreWhitespace = false
         )
         {
-            SystemCodeTracing.RelayMethodEntered(paramsAndArgs: new Dictionary<string, object> 
+            CodeTraceEngine.RelayMethodEntered(paramsAndArgs: new Dictionary<string, object> 
             { 
                 [nameof(rawSource)] = rawSource.ToString(), 
                 [nameof(pos)] = pos 
@@ -171,15 +171,15 @@ namespace Horseshoe.NET.Expressions.Tokens
                 c = rawSource[_pos];
                 if (ignoreWhitespace && c.In(' ', '\x00A0', '\t', '\n', '\r'))
                 {
-                    SystemCodeTracing.RelayMessage("ignoring whitespace", traceGroup: GetTraceGroup());
+                    CodeTraceEngine.RelayMessage("ignoring whitespace", traceGroup: GetTraceGroup());
                     continue;
                 }
                 if (char0.HasValue)
-                    return SystemCodeTracing.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: (char0, c), traceGroup: GetTraceGroup());
+                    return CodeTraceEngine.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: (char0, c), traceGroup: GetTraceGroup());
                 else
                     char0 = c;
             }
-            return SystemCodeTracing.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: (char0, null as char?), traceGroup: GetTraceGroup());
+            return CodeTraceEngine.RelayMethodReturningValue(message: "_pos=" + _pos, returnValue: (char0, null as char?), traceGroup: GetTraceGroup());
         }
 
         protected static Languages Lang { get; } = new Languages

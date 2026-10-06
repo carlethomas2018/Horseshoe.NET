@@ -76,7 +76,7 @@ namespace Horseshoe.NET.Expressions.Tokens
         {
             RelayMethodEntered
             (
-                param01: nameof(tokens), arg01: TextUtil.Truncate(CollectionUtil.ToString(tokens), 100, truncateIndicator: "...", position: HorizontalPosition.Center)
+                param01: nameof(tokens), arg01: TextUtil.Truncate(CollectionUtil.Render(tokens), 100, truncateIndicator: "...", position: HorizontalPosition.Center)
             );
 
             Tokens = tokens;

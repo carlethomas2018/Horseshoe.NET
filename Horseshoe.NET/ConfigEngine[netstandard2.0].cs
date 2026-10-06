@@ -4,11 +4,16 @@ using Horseshoe.NET.Types;
 
 namespace Horseshoe.NET
 {
-    public class Config
+    public class ConfigEngine : IConfigEngine
     {
-        public IConfiguration Configuration { get; set; }
+        public IConfiguration Configuration { get; private set; }
 
-        public bool IsValid => Configuration != null;
+        public bool IsInited => Configuration != null;
+
+        public void Init(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
 
         public bool TryGetValue(string key, out string value)
         {

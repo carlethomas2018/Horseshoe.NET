@@ -4,95 +4,33 @@ using System.Diagnostics;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Globalization;
+using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.CodeTrace
 {
-    public static class SystemCodeTracing
+    public static class CodeTraceEngine
     {
-        /// <summary>
-        /// Collection of relay group names (i.e. C# namespaces) whose code trace messages will be relayed.  Message relaying is opt-in only.
-        /// </summary>
-        internal static IList<string> TraceGroups { get; set; }
-
-        /// <summary>
-        /// Global set of listeners to which code trace messages will be relayed.
-        /// </summary>
-        internal static IList<ITraceListener> TraceListeners { get; set; }
-
-        public static bool HasTraceGroups => CollectionUtil.HasAny(TraceGroups);
-
-        public static bool HasListeners => CollectionUtil.HasAny(TraceListeners);
-
-        public static bool HasMatchingTraceGroup(string traceGroup)
-        {
-            return HasMatchingTraceGroup(grp => grp.Equals("*") || grp.Equals(traceGroup) || grp.StartsWith(traceGroup + "."));
-        }
-
-        public static bool HasMatchingTraceGroup(Func<string, bool> predicate)
-        {
-            return CollectionUtil.HasAny(TraceGroups, predicate);
-        }
-
-        public static void AddGroups(params string[] traceGroups)
-        {
-            foreach (string group in traceGroups)
-            {
-                if (TraceGroups == null)
-                    TraceGroups = new List<string>();
-                else if (TraceGroups.Contains(group))
-                    continue;
-                TraceGroups.Add(group);
-            }
-        }
-
-        public static void RemoveGroups(params string[] traceGroups)
-        {
-            if (TraceGroups == null)
-                return;
-
-            foreach (string group in traceGroups)
-            {
-                TraceGroups.Remove(group);
-            }
-        }
-
-        public static void RegisterListener(ITraceListener listener)
-        {
-            if (TraceListeners == null)
-                TraceListeners = new List<ITraceListener>();
-            else if (TraceListeners.Contains(listener))
-                return;
-            TraceListeners.Add(listener);
-        }
-
-        public static void UnregisterListener(ITraceListener listener)
-        {
-            if (TraceListeners == null)
-                return;
-            TraceListeners.Remove(listener);
-        }
-
         /// <summary>
         /// Relays a trace message to registered trace listeners (when tracing is enabled and the specified trace group matches).
         /// </summary>
         /// <param name="line">Message to relay to the listeners.</param>
         /// <param name="indentAction">Determines how to adjust IIndentable listeners' IndentLevel.</param>
         /// <param name="overrideIndentLevel">Optional indentation level to use for the current message only.</param>
-        /// <param name="traceGroup">
+        /// <param name="listeningGroup">
         /// Trace group identifier (i.e. C# namespace) to match against registered trace groups.
-        /// If omitted and calling <see cref="SystemCodeTracing"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
-        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.TraceGroup</c> will be used.
+        /// If omitted and calling <see cref="CodeTraceEngine"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
+        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.ListeningGroup</c> will be used.
         /// </param>
-        public static void RelayMessage(string line, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string traceGroup = null)
+        public static void RelayMessage(string line, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string listeningGroup = null)
         {
-            if (HasListeners)
+            if (SystemSettings.CodeTrace.HasTraceListeners)
             {
-                traceGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
+                listeningGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
 
-                if (HasMatchingTraceGroup(traceGroup))
+                if (SystemSettings.CodeTrace.HasMatchingListeningGroup(listeningGroup))
                 {
                     string indentation = string.Empty;
-                    foreach (var listener in TraceListeners)
+                    foreach (var listener in SystemSettings.CodeTrace.TraceListeners)
                     {
                         if (listener is IIndentable indentable)
                         {
@@ -142,21 +80,21 @@ namespace Horseshoe.NET.CodeTrace
         /// <param name="multiLines">Multiline message to relay to the listeners.</param>
         /// <param name="indentAction">Determines how to adjust IIndentable listeners' IndentLevel.</param>
         /// <param name="overrideIndentLevel">Optional indentation level to use for the current message only.</param>
-        /// <param name="traceGroup">
+        /// <param name="listeningGroup">
         /// Trace group identifier (i.e. C# namespace) to match against registered trace groups.
-        /// If omitted and calling <see cref="SystemCodeTracing"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
-        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.TraceGroup</c> will be used.
+        /// If omitted and calling <see cref="CodeTraceEngine"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
+        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.ListeningGroup</c> will be used.
         /// </param>
-        public static void RelayMultiLineMessage(IEnumerable<string> multiLines, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string traceGroup = null)
+        public static void RelayMultiLineMessage(IEnumerable<string> multiLines, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string listeningGroup = null)
         {
-            if (HasListeners)
+            if (SystemSettings.CodeTrace.HasTraceListeners)
             {
-                traceGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
+                listeningGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
 
-                if (HasMatchingTraceGroup(traceGroup))
+                if (SystemSettings.CodeTrace.HasMatchingListeningGroup(listeningGroup))
                 {
                     string indentation = string.Empty;
-                    foreach (var listener in TraceListeners)
+                    foreach (var listener in SystemSettings.CodeTrace.TraceListeners)
                     {
                         if (listener is IIndentable indentable)
                         {
@@ -209,18 +147,18 @@ namespace Horseshoe.NET.CodeTrace
         /// <param name="exception">The exception to relay to the listeners.</param>
         /// <param name="indentException">Whether to honor IIndentable listeners' IndentLevel, defaut is <c>false</c>.</param>
         /// <param name="throwException">Optionally throw the exception after having relayed it to the listeners, defaut is <c>false</c>.</param>
-        /// <param name="traceGroup">
+        /// <param name="listeningGroup">
         /// Trace group identifier (i.e. C# namespace) to match against registered trace groups.
-        /// If omitted and calling <see cref="SystemCodeTracing"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
-        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.TraceGroup</c> will be used.
+        /// If omitted and calling <see cref="CodeTraceEngine"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
+        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.ListeningGroup</c> will be used.
         /// </param>
-        public static void RelayException(Exception exception, bool includeStackTrace = false, bool indentException = false, bool throwException = false, string traceGroup = null)
+        public static void RelayException(Exception exception, bool includeStackTrace = false, bool indentException = false, bool throwException = false, string listeningGroup = null)
         {
-            if (HasListeners)
+            if (SystemSettings.CodeTrace.HasTraceListeners)
             {
-                traceGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
+                listeningGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
 
-                if (HasMatchingTraceGroup(traceGroup))
+                if (SystemSettings.CodeTrace.HasMatchingListeningGroup(listeningGroup))
                 {
                     List<string> lines = new List<string>
                     {
@@ -237,9 +175,9 @@ namespace Horseshoe.NET.CodeTrace
                     lines.Add(null);
 
                     if (indentException)
-                        RelayMultiLineMessage(lines, traceGroup: traceGroup);
+                        RelayMultiLineMessage(lines, listeningGroup: listeningGroup);
                     else
-                        RelayMultiLineMessage(lines, overrideIndentLevel: 0, traceGroup: traceGroup);
+                        RelayMultiLineMessage(lines, overrideIndentLevel: 0, listeningGroup: listeningGroup);
                 }
             }
 
@@ -284,10 +222,10 @@ namespace Horseshoe.NET.CodeTrace
         /// <param name="arg15">Optional fifteenth argument to relay to the listeners.</param>
         /// <param name="param16">Optional sixteenth parameter name to relay to the listeners.</param>
         /// <param name="arg16">Optional sixteenth argument to relay to the listeners.</param>
-        /// <param name="traceGroup">
+        /// <param name="listeningGroup">
         /// Trace group identifier (i.e. C# namespace) to match against registered trace groups.
-        /// If omitted and calling <see cref="SystemCodeTracing"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
-        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.TraceGroup</c> will be used.
+        /// If omitted and calling <see cref="CodeTraceEngine"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
+        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.ListeningGroup</c> will be used.
         /// </param>
         public static void RelayMethodEntered
         (
@@ -309,12 +247,12 @@ namespace Horseshoe.NET.CodeTrace
             string param14 = null, object arg14 = null,
             string param15 = null, object arg15 = null,
             string param16 = null, object arg16 = null,
-            string traceGroup = null
+            string listeningGroup = null
         )
         {
-            if (HasListeners)
+            if (SystemSettings.CodeTrace.HasTraceListeners)
             {
-                traceGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
+                listeningGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
                 paramsAndArgs ??= new Dictionary<string, object>();
 
                 if (!string.IsNullOrEmpty(param01)) paramsAndArgs.Add(param01, arg01);
@@ -334,7 +272,7 @@ namespace Horseshoe.NET.CodeTrace
                 if (!string.IsNullOrEmpty(param15)) paramsAndArgs.Add(param15, arg15);
                 if (!string.IsNullOrEmpty(param16)) paramsAndArgs.Add(param16, arg16);
 
-                if (HasMatchingTraceGroup(traceGroup))
+                if (SystemSettings.CodeTrace.HasMatchingListeningGroup(listeningGroup))
                 {
                     List<string> lines = new List<string>
                 {
@@ -349,14 +287,14 @@ namespace Horseshoe.NET.CodeTrace
                         lines.Add("(");
                         foreach (var kvp in paramsAndArgs)
                         {
-                            lines.Add(paramIndentation + kvp.Key + ": " + (kvp.Value?.ToDisplayString() ?? "doing"));
+                            lines.Add(paramIndentation + kvp.Key + ": " + TextUtil.Truncate(Util.ToDisplayString(kvp.Value), SystemSettings.CodeTrace.RenderedArgMaxLength));
                         }
                         lines.Add(")");
                     }
 
-                    RelayMultiLineMessage(lines, traceGroup: traceGroup);
+                    RelayMultiLineMessage(lines, listeningGroup: listeningGroup);
 
-                    RelayMessage("{", indentAction: IndentAction.IncreaseAfter, traceGroup: traceGroup);
+                    RelayMessage("{", indentAction: IndentAction.IncreaseAfter, listeningGroup: listeningGroup);
                 }
             }
         }
@@ -365,22 +303,22 @@ namespace Horseshoe.NET.CodeTrace
         /// Relays a trace message about exiting a method / constructor to registered trace listeners (when tracing is enabled and the specified trace group matches).
         /// </summary>
         /// <param name="message">An optional method return related message.</param>
-        /// <param name="traceGroup">
+        /// <param name="listeningGroup">
         /// Trace group identifier (i.e. C# namespace) to match against registered trace groups.
-        /// If omitted and calling <see cref="SystemCodeTracing"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
-        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.TraceGroup</c> will be used.
+        /// If omitted and calling <see cref="CodeTraceEngine"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
+        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.ListeningGroup</c> will be used.
         /// </param>
-        public static void RelayMethodReturning(string message = null, string traceGroup = null)
+        public static void RelayMethodReturning(string message = null, string listeningGroup = null)
         {
-            if (HasListeners)
+            if (SystemSettings.CodeTrace.HasTraceListeners)
             {
-                traceGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
+                listeningGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
 
-                if (HasMatchingTraceGroup(traceGroup))
+                if (SystemSettings.CodeTrace.HasMatchingListeningGroup(listeningGroup))
                 {
                     if (message != null)
-                        RelayMessage(message, traceGroup: traceGroup);
-                    RelayMessage("}", indentAction: IndentAction.Decrease, traceGroup: traceGroup);
+                        RelayMessage(message, listeningGroup: listeningGroup);
+                    RelayMessage("}", indentAction: IndentAction.Decrease, listeningGroup: listeningGroup);
                 }
             }
         }
@@ -391,23 +329,23 @@ namespace Horseshoe.NET.CodeTrace
         /// <typeparam name="T">Type of return value</typeparam>
         /// <param name="message">An optional method return related message.</param>
         /// <param name="returnValue">The method return value, including <c>null</c>, to relay to the listeners.</param>
-        /// <param name="traceGroup">
+        /// <param name="listeningGroup">
         /// Trace group identifier (i.e. C# namespace) to match against registered trace groups.
-        /// If omitted and calling <see cref="SystemCodeTracing"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
-        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.TraceGroup</c> will be used.
+        /// If omitted and calling <see cref="CodeTraceEngine"/><c>.Relay...()</c>, system diagnostics and reflection are used to infer the fully qualified namespace name.
+        /// If omitted and calling <see cref="BaseObj"/><c>.Relay...()</c>, <see cref="BaseObj"/><c>.ListeningGroup</c> will be used.
         /// </param>
-        public static T RelayMethodReturningValue<T>(string message = null, T returnValue = default, string traceGroup = null)
+        public static T RelayMethodReturningValue<T>(string message = null, T returnValue = default, string listeningGroup = null)
         {
-            if (HasListeners)
+            if (SystemSettings.CodeTrace.HasTraceListeners)
             {
-                traceGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
+                listeningGroup ??= new StackTrace().GetFrame(1).GetMethod().DeclaringType.Namespace;
 
-                if (HasMatchingTraceGroup(traceGroup))
+                if (SystemSettings.CodeTrace.HasMatchingListeningGroup(listeningGroup))
                 {
                     if (message != null)
-                        RelayMessage(message, traceGroup: traceGroup);
-                    RelayMessage("returns: " + (returnValue?.ToDisplayString() ?? "doing"), traceGroup: traceGroup);
-                    RelayMessage("}", indentAction: IndentAction.Decrease, traceGroup: traceGroup);
+                        RelayMessage(message, listeningGroup: listeningGroup);
+                    RelayMessage("returns: " + (returnValue?.ToDisplayString() ?? "doing"), listeningGroup: listeningGroup);
+                    RelayMessage("}", indentAction: IndentAction.Decrease, listeningGroup: listeningGroup);
                 }
             }
 

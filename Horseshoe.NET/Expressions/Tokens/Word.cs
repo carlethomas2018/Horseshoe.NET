@@ -48,7 +48,7 @@ namespace Horseshoe.NET.Expressions.Tokens
             {
                 [nameof(rawSource)] = rawSource.ToString(),
                 [nameof(pos)] = pos,
-                [nameof(tokens)] = CollectionUtil.ToCountAndLastString(tokens)
+                [nameof(tokens)] = CollectionUtil.RenderCountAndLastItem(tokens)
             });
 
             startPos = pos;

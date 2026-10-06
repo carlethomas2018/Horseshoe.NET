@@ -11,36 +11,30 @@ namespace Horseshoe.NET
     /// </summary>
     public abstract class BaseObj
     {
-        protected string TraceGroup { get; }
+        protected string TraceListeningGroup { get; }
 
         protected BaseObj() 
         {
-            TraceGroup = GetType().Namespace;
+            TraceListeningGroup = GetType().Namespace;
         }
 
         /* * * * * * * * * * * * * * * * * *
          *    CODE TRACE
          * * * * * * * * * * * * * * * * * */
 
-        /// <inheritdoc cref="SystemCodeTracing.RelayMultiLineMessage(IEnumerable{string}, IndentAction, int?, string)"/>
-        protected void RelayMessage(string line, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string traceGroup = null)
-        {
-            SystemCodeTracing.RelayMessage(line, indentAction: indentAction, overrideIndentLevel: overrideIndentLevel, traceGroup: traceGroup ?? TraceGroup);
-        }
+        /// <inheritdoc cref="CodeTraceEngine.RelayMultiLineMessage(IEnumerable{string}, IndentAction, int?, string)"/>
+        protected void RelayMessage(string line, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string listeningGroup = null) =>
+            CodeTraceEngine.RelayMessage(line, indentAction: indentAction, overrideIndentLevel: overrideIndentLevel, listeningGroup: listeningGroup ?? TraceListeningGroup);
 
-        /// <inheritdoc cref="SystemCodeTracing.RelayMultiLineMessage(IEnumerable{string}, IndentAction, int?, string)"/>
-        protected void RelayMultiLineMessage(IEnumerable<string> multiLines, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string traceGroup = null)
-        {
-            SystemCodeTracing.RelayMultiLineMessage(multiLines, indentAction: indentAction, overrideIndentLevel: overrideIndentLevel, traceGroup: traceGroup ?? TraceGroup);
-        }
+        /// <inheritdoc cref="CodeTraceEngine.RelayMultiLineMessage(IEnumerable{string}, IndentAction, int?, string)"/>
+        protected void RelayMultiLineMessage(IEnumerable<string> multiLines, IndentAction indentAction = IndentAction.None, int? overrideIndentLevel = null, string listeningGroup = null) =>
+            CodeTraceEngine.RelayMultiLineMessage(multiLines, indentAction: indentAction, overrideIndentLevel: overrideIndentLevel, listeningGroup: listeningGroup ?? TraceListeningGroup);
 
-        /// <inheritdoc cref="SystemCodeTracing.RelayException(Exception, bool, bool, bool, string)"/>
-        protected void RelayException(Exception exception, bool includeStackTrace = false, bool indentException = false, bool throwException = false, string traceGroup = null)
-        {
-            SystemCodeTracing.RelayException(exception, includeStackTrace: includeStackTrace, indentException: indentException, throwException: throwException, traceGroup: traceGroup ?? TraceGroup);
-        }
+        /// <inheritdoc cref="CodeTraceEngine.RelayException(Exception, bool, bool, bool, string)"/>
+        protected void RelayException(Exception exception, bool includeStackTrace = false, bool indentException = false, bool throwException = false, string listeningGroup = null) =>
+            CodeTraceEngine.RelayException(exception, includeStackTrace: includeStackTrace, indentException: indentException, throwException: throwException, listeningGroup: listeningGroup ?? TraceListeningGroup);
 
-        /// <inheritdoc cref="SystemCodeTracing.RelayMethodEntered(string, Dictionary{string, object}, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string)"/>
+        /// <inheritdoc cref="CodeTraceEngine.RelayMethodEntered(string, Dictionary{string, object}, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string, object, string)"/>
         protected void RelayMethodEntered
         (
             string methodName = null,
@@ -61,10 +55,9 @@ namespace Horseshoe.NET
             string param14 = null, object arg14 = null,
             string param15 = null, object arg15 = null,
             string param16 = null, object arg16 = null,
-            string traceGroup = null
-        )
-        {
-            SystemCodeTracing.RelayMethodEntered
+            string listeningGroup = null
+        ) =>
+            CodeTraceEngine.RelayMethodEntered
             (
                 methodName: methodName ?? new StackTrace().GetFrame(1).GetMethod().ToDisplayString(), 
                 paramsAndArgs: paramsAndArgs,
@@ -84,22 +77,16 @@ namespace Horseshoe.NET
                 param14: param14, arg14: arg14,
                 param15: param15, arg15: arg15,
                 param16: param16, arg16: arg16,
-                traceGroup: traceGroup ?? TraceGroup
+                listeningGroup: listeningGroup ?? TraceListeningGroup
             );
-        }
 
-        /// <inheritdoc cref="SystemCodeTracing.RelayMethodReturning(string, string)"/>
-        protected void RelayMethodReturning(string message = null, string traceGroup = null)
-        {
-            SystemCodeTracing.RelayMethodReturning(message: message, traceGroup: traceGroup ?? TraceGroup);
-        }
+        /// <inheritdoc cref="CodeTraceEngine.RelayMethodReturning(string, string)"/>
+        protected void RelayMethodReturning(string message = null, string listeningGroup = null) =>
+            CodeTraceEngine.RelayMethodReturning(message: message, listeningGroup: listeningGroup ?? TraceListeningGroup);
 
-        /// <inheritdoc cref="SystemCodeTracing.RelayMethodReturningValue{T}(string, T, string)"/>
-        protected T RelayMethodReturningValue<T>(string message = null, T returnValue = default, string traceGroup = null)
-        {
-            return SystemCodeTracing.RelayMethodReturningValue(message: message, returnValue: returnValue, traceGroup: traceGroup ?? TraceGroup);
-        }
-
+        /// <inheritdoc cref="CodeTraceEngine.RelayMethodReturningValue{T}(string, T, string)"/>
+        protected T RelayMethodReturningValue<T>(string message = null, T returnValue = default, string listeningGroup = null) =>
+            CodeTraceEngine.RelayMethodReturningValue(message: message, returnValue: returnValue, listeningGroup: listeningGroup ?? TraceListeningGroup);
 
         /* * * * * * * * * * * * * * * * * *
          *    COLLECTIONS
@@ -117,5 +104,16 @@ namespace Horseshoe.NET
         public static bool IsNullOrEmpty<T>(IEnumerable<T> collection) =>
             CollectionUtil.IsNullOrEmpty(collection);
 
+        /// <inheritdoc cref="CollectionUtil.Render{T}(IEnumerable{T})"/>
+        public static string Render<T>(IEnumerable<T> collection) =>
+            CollectionUtil.Render(collection);
+
+        /// <inheritdoc cref="CollectionUtil.RenderCountAndLastItem{T}(IEnumerable{T})"/>
+        public static string RenderCountAndLastItem<T>(IEnumerable<T> collection) =>
+            CollectionUtil.RenderCountAndLastItem(collection);
+
+        /// <inheritdoc cref="ListUtil.AsList{T}(IEnumerable{T})"/>
+        public static List<T> AsList<T>(IEnumerable<T> collection) =>
+            ListUtil.AsList(collection);
     }
 }

@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
+
+using Horseshoe.NET.CodeTrace;
 using Horseshoe.NET.Data;
 using Horseshoe.NET.DateAndTime;
 using Horseshoe.NET.Expressions;
@@ -14,12 +17,25 @@ namespace Horseshoe.NET.Test
     {
         static void Main(string[] args)
         {
+            Init();
+
             //TestLanguage();
             //TestTimeSpanRendering();
             //TestReveal();
             //TestPad();
             //TestDataGrid();
             TestExpressions();
+        }
+
+        static void Init()
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            IConfiguration config = builder.Build();
+
+            Config.Engine.Init(config);
         }
 
         static readonly Languages Lang = new Languages()
@@ -189,6 +205,8 @@ namespace Horseshoe.NET.Test
 
         static void TestExpressions()
         {
+            SystemSettings.CodeTrace.AddListeningGroups("*");
+            SystemSettings.CodeTrace.RegisterTraceListener(new TraceToConsole());
             string[] rawSources =
             {
                 "  \"Hello world!\"  ",

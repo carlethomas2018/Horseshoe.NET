@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection;
 
+using Horseshoe.NET.Collections;
 using Horseshoe.NET.Types;
 
 namespace Horseshoe.NET
@@ -14,7 +16,7 @@ namespace Horseshoe.NET
         /// Displays objects in a uniform, programming language adjacent way e.g. numbers and bools... <c>-3.1, 3.141592652589, true</c>; others... <c>"Hello world!", "2/12/2022", "System.String", "ctor:MyClass"</c>
         /// </summary>
         /// <param name="obj">An object</param>
-        /// <param name="fqn">If <c>true</c>, returns the fully qualified name of the type, e.g. <c>MyNamespace.MyClass</c>. Default is <c>false</c> e.g. <c>MyClass</c>.</param>
+        /// <param name="fqn">If <c>true</c> and <c>obj</c> is a type, returns the fully qualified type name, e.g. <c>MyNamespace.MyClass</c>. Default is <c>false</c> e.g. <c>MyClass</c>.</param>
         /// <returns>A display string</returns>
         public static string ToDisplayString(object obj, bool fqn = false)
         {
@@ -26,6 +28,9 @@ namespace Horseshoe.NET
 
             if (type.IsNumeric() || type == typeof(bool))
                 return obj.ToString();
+
+            if (obj is IEnumerable collection)
+                return CollectionUtil.Render(collection);
 
             if (obj is DateTime dateTime)
             {

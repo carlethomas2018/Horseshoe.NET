@@ -1,150 +1,125 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
 
-using Horseshoe.NET.Globalization;
+using Horseshoe.NET.CodeTrace;
+using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET
 {
     public static class SystemSettings
     {
-        public static Config Config { get; } = new Config();
-
-        /// <summary>
-        /// Gets a configuration value by key. If a required key is not found, an exception will be thrown.
-        /// </summary>
-        /// <typeparam name="T">The type of the configuration value to retrieve.</typeparam>
-        /// <param name="key">The key for the configuration value to retrieve.</param>
-        /// <param name="required">Indicates whether the key is required.</param>
-        /// <param name="defaultValue">An optional default value to return if the key is not found.</param>
-        /// <param name="locale">An optional locale to use for parsing date values and numbers.</param>
-        /// <param name="numberStyle">An optional number style to use for parsing numbers.</param>
-        /// <param name="dateFormat">An optional date format to use for parsing date values.</param>
-        /// <param name="dateTimeStyle">An optional date time style to use for parsing date values.</param>
-        /// <param name="additionalData">An optional object containing additional data to use for parsing.</param>
-        /// <returns>The configuration value.</returns>
-        /// <exception cref="ConfigException"></exception>
-        public static T GetConfigValue<T>(string key, bool required = true, T defaultValue = default, string locale = null, NumberStyles numberStyle = NumberStyles.None, string dateFormat = null, DateTimeStyles dateTimeStyle = DateTimeStyles.None, object additionalData = null)
+        public static class CodeTrace
         {
-            //// Handle special case for default strings
-            //if (typeof(T) == typeof(string) && defaultValue == null)
-            //    defaultValue = (T)(object)string.Empty;
+            /// <summary>
+            /// The default maximum length of a string representation of a collection (e.g., array, list, dictionary) when logged by CodeTrace.
+            /// </summary>
+            public const int DefaultRenderedArgMaxLength = 100;
 
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ConfigException(Lang.Get("InvalidKey"));
+            private static int? _renderedArgMaxLength;
 
-            if (!Config.IsValid)
-            {
-                if (required)
-                    throw new ConfigException(Lang.Get("InvalidConfig"));
-
-                return defaultValue;
+            /// <summary>
+            /// The maximum length of a string representation of a collection (e.g., array, list, dictionary) when logged by CodeTrace.
+            /// </summary>
+            public static int RenderedArgMaxLength 
+            { 
+                get => _renderedArgMaxLength ?? DefaultRenderedArgMaxLength; 
+                set => _renderedArgMaxLength = value; 
             }
 
-            // Handle special case for hex numbers
-            if (key != null && key.EndsWith("[hex]"))
+            /// <summary>
+            /// Collection of relay group names (i.e. C# namespaces) whose code trace messages will be relayed.  Message relaying is opt-in only.
+            /// </summary>
+            internal static IList<string> ListeningGroups { get; set; }
+
+            /// <summary>
+            /// Global set of listeners to which code trace messages will be relayed.
+            /// </summary>
+            internal static IList<ITraceListener> TraceListeners { get; set; }
+
+            /// <summary>
+            /// Determines if client code has added any listening groups whose code trace messages will be relayed.
+            /// </summary>
+            public static bool HasListeningGroups => CollectionUtil.HasAny(ListeningGroups);
+
+            /// <summary>
+            /// Determines if there are any registered trace listeners to which code trace messages will be relayed.
+            /// </summary>
+            public static bool HasTraceListeners => CollectionUtil.HasAny(TraceListeners);
+
+            /// <summary>
+            /// Determines if the provided listening group matches any of the client added listening groups. 
+            /// A match occurs if the registered group is "*", or if it equals the provided listening group, 
+            /// or if it starts with the provided listening group followed by a dot (indicating a sub-namespace).
+            /// </summary>
+            /// <param name="listeningGroup">The listening group to check.</param>
+            /// <returns><c>true</c> if a match is found; otherwise, <c>false</c>.</returns>
+            public static bool HasMatchingListeningGroup(string listeningGroup) =>
+                HasMatchingListeningGroup(grp => grp.Equals("*") || grp.Equals(listeningGroup) || grp.StartsWith(listeningGroup + "."));
+
+            /// <summary>
+            /// Determines if the provided listening group matches any of the client added listening groups. 
+            /// A match occurs if the registered group is "*", or if it equals the provided listening group, 
+            /// or if it starts with the provided listening group followed by a dot (indicating a sub-namespace).
+            /// </summary>
+            /// <param name="predicate">The predicate to check against the listening groups.</param>
+            /// <returns><c>true</c> if a match is found; otherwise, <c>false</c>.</returns>
+            public static bool HasMatchingListeningGroup(Func<string, bool> predicate) =>
+                CollectionUtil.HasAny(ListeningGroups, predicate);
+
+            /// <summary>
+            /// Adds one or more listening groups to the collection of groups whose code trace messages will be relayed.
+            /// </summary>
+            /// <param name="listeningGroups">The listening group(s) to add.</param>
+            public static void AddListeningGroups(params string[] listeningGroups)
             {
-                key = key.Substring(0, key.Length - 5);
-                numberStyle |= NumberStyles.HexNumber;
+                foreach (string group in listeningGroups)
+                {
+                    if (ListeningGroups == null)
+                        ListeningGroups = new List<string>();
+                    else if (ListeningGroups.Contains(group))
+                        continue;
+                    ListeningGroups.Add(group);
+                }
             }
 
-            // Get and parse the value from the configuration
-            if (Config.TryGetValue(key, out string value))
+            /// <summary>
+            /// Removes one or more listening groups from the collection of groups whose code trace messages will be relayed.
+            /// </summary>
+            /// <param name="listeningGroups">The listening group(s) to remove.</param>
+            public static void RemoveListeningGroups(params string[] listeningGroups)
             {
-                if (required && string.IsNullOrWhiteSpace(value))
-                    throw new ConfigException(string.Format(Lang.Get("RequiredValueNotFound"), key));
+                if (ListeningGroups == null)
+                    return;
 
-                return Parse.Value<T>(value, defaultValue: defaultValue, locale: locale, numberStyle: numberStyle, dateFormat, dateTimeStyle, additionalData, strict: true);
+                foreach (string group in listeningGroups)
+                {
+                    ListeningGroups.Remove(group);
+                }
             }
 
-            if (required)
-                throw new ConfigException(string.Format(Lang.Get("RequiredKeyNotFound"), key));
+            /// <summary>
+            /// Registers a trace listener to receive code trace messages. If the listener is already registered, it will not be added again.
+            /// </summary>
+            /// <param name="listener">The trace listener to register.</param>
+            public static void RegisterTraceListener(ITraceListener listener)
+            {
+                if (TraceListeners == null)
+                    TraceListeners = new List<ITraceListener>();
+                else if (TraceListeners.Contains(listener))
+                    return;
+                TraceListeners.Add(listener);
+            }
 
-            return defaultValue;
+            /// <summary>
+            /// Unregisters a trace listener so that it no longer receives code trace messages. If the listener is not registered, this method does nothing.
+            /// </summary>
+            /// <param name="listener">The trace listener to unregister.</param>
+            public static void UnregisterTraceListener(ITraceListener listener)
+            {
+                if (TraceListeners == null)
+                    return;
+                TraceListeners.Remove(listener);
+            }
         }
-
-        /// <summary>
-        /// Gets a connection string by key from the configuration.
-        /// </summary>
-        /// <param name="key">The connection string key</param>
-        /// <param name="required">Indicates whether the connection string is required</param>
-        /// <returns>The connection string, or null if not found and not required</returns>
-        /// <exception cref="ConfigException"></exception>
-        public static string GetConnectionString(string key, bool required = true)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ConfigException(Lang.Get("InvalidKey"));
-
-            if (!Config.IsValid)
-            {
-                if (required)
-                    throw new ConfigException(Lang.Get("InvalidConfig"));
-
-                return null;
-            }
-
-            if (Config.TryGetConnectionString(key, out string connectionString))
-            {
-                if (required && string.IsNullOrWhiteSpace(connectionString))
-                    throw new ConfigException(string.Format(Lang.Get("RequiredValueNotFound"), key));
-
-                return connectionString;
-            }
-
-            if (required)
-                throw new ConfigException(string.Format(Lang.Get("RequiredKeyNotFound"), key));
-
-            return null;
-        }
-
-        /// <summary>
-        /// Gets an array of configuration values by path. If a required path is not found, an exception will be thrown.
-        /// </summary>
-        /// <typeparam name="T">The type of elements in the array</typeparam>
-        /// <param name="path">The path to the array in the configuration</param>
-        /// <param name="required">Indicates whether the array is required</param>
-        /// <returns>The array of configuration values, or null if not found and not required</returns>
-        /// <exception cref="ConfigException"></exception>
-        public static T[] GetArray<T>(string path, bool required = true)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-                throw new ConfigException(Lang.Get("InvalidKey"));
-
-            if (!Config.IsValid)
-            {
-                if (required)
-                    throw new ConfigException(Lang.Get("InvalidConfig"));
-
-                return null;
-            }
-
-            if (Config.TryGetArray<T>(path, out T[] array))
-            {
-                if (required && (array == null || array.Length == 0))
-                    throw new ConfigException(string.Format(Lang.Get("RequiredValueNotFound"), path));
-
-                return array;
-            }
-            if (required)
-                throw new ConfigException(string.Format(Lang.Get("RequiredKeyNotFound"), path));
-
-            return null;
-        }
-
-        private static Languages Lang { get; } = new Languages
-        {
-            { "InvalidKey", "The provided key / path is invalid." },
-            { "InvalidConfig", "SystemSettings has not been initialized with a valid Config instance." },
-            { "RequiredKeyNotFound", "Required key '{0}' not found in configuration." },
-            { "RequiredValueNotFound", "Required value for key '{0}' not found in configuration." },
-        }
-        .AddLanguages
-        (
-            new Language("es")
-            {
-                { "InvalidKey", "La clave / ruta proporcionada es inválida." },
-                { "InvalidConfig", "SystemSettings no ha sido inicializado con una instancia de Config válida." },
-                { "RequiredKeyNotFound", "Clave requerida '{0}' no encontrada en la configuración." },
-                { "RequiredValueNotFound", "Valor requerido para la clave '{0}' no encontrado en la configuración." },
-            }
-        );
     }
 }

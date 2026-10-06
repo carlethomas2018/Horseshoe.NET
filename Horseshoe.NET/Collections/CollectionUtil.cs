@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -40,23 +41,37 @@ namespace Horseshoe.NET.Collections
 
         public static bool IsNullOrEmpty<T>(IEnumerable<T> collection) => !HasAny(collection);
 
+        /// <inheritdoc cref="Render{T}(IEnumerable{T})"/>
+        public static string Render(IEnumerable collection) =>
+            Render(collection.Cast<object>());
+
         /// <summary>
-        /// Renders a collection of items to a single string e.g. <c>[ 1, "Bob", [null]]</c>
+        /// Renders a collection of items as a single string e.g. <c>{ 1, "Bob", [null] }</c>
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collection"></param>
-        /// <returns></returns>
-        public static string ToString<T>(IEnumerable<T> collection)
+        /// <typeparam name="T">The type of items in the collection</typeparam>
+        /// <param name="collection">The collection to render</param>
+        /// <returns>A string representing the collection</returns>
+        public static string Render<T>(IEnumerable<T> collection)
         {
             if (collection == null)
                 return "[null]";
 
-            return collection.Any() 
+            return collection.Any()
                 ? "{ " + string.Join(", ", collection.Select(t => Util.ToDisplayString(t))) + " }"
                 : "{ }";
         }
 
-        public static string ToCountAndLastString<T>(IEnumerable<T> collection)
+        /// <inheritdoc cref="RenderCountAndLastItem{T}(IEnumerable{T})"/>
+        public static string RenderCountAndLastItem(IEnumerable collection) =>
+            RenderCountAndLastItem(collection.Cast<object>());
+
+        /// <summary>
+        /// Renders the count and last item of a collection as a single string e.g. <c>{ [5]..., "Bob" }</c>
+        /// </summary>
+        /// <typeparam name="T">The type of items in the collection</typeparam>
+        /// <param name="collection">The collection to render</param>
+        /// <returns>A string representing the collection</returns>
+        public static string RenderCountAndLastItem<T>(IEnumerable<T> collection)
         {
             if (collection == null)
                 return "[null]";
@@ -65,7 +80,7 @@ namespace Horseshoe.NET.Collections
                 return "{ }";
 
             return collection.Count() > 1
-                ? "{[" + (collection.Count() - 1) + "]... " + Util.ToDisplayString(collection.Last()) + " }"
+                ? "{ [" + (collection.Count() - 1) + "]... " + Util.ToDisplayString(collection.Last()) + " }"
                 : "{ " + Util.ToDisplayString(collection.Single()) + " }";
         }
     }
